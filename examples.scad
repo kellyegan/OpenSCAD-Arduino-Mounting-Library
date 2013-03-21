@@ -4,7 +4,7 @@ include <arduino.scad>
 //You can create a boxed out version of a variety of boards by calling the arduino() module
 //The default board for all functions is the Uno
 
-translate([0,0,80]) {
+translate([0,-2 * (dueDepth + 20),0]) {
 	arduino();
 	
 	translate( [arduinoWidth + 30, 0, 0] )
@@ -18,7 +18,7 @@ translate([0,0,80]) {
 //Standoffs
 //The standoffs() module allows you to place standoff posts at each of the mounting holes
 
-translate( [ 0, 0, 40] ) {
+translate( [ 0, -(dueDepth + 20), 0] ) {
 	standoffs();
 	
 	translate( [arduinoWidth + 30, 0, 0] )
@@ -46,7 +46,7 @@ translate([0, 0, 0]) {
 //Bounding box
 //Creates a box that contains the board including usb connector and headers
 
-translate( [ 0, 0, -40] ) {
+translate( [ 0, dueDepth + 20, 0] ) {
 	boundingBox();
 	
 	//You can change the height value

@@ -1,4 +1,4 @@
-# Arduino OpenSCAD library
+# Arduino Mounting OpenSCAD library
 
 The library has a variety of modules for creating Arduinos and Arduino mounts. Here is a basic description of the included modules. For examples see the included example SCAD.
 

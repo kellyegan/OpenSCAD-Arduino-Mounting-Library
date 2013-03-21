@@ -1,8 +1,4 @@
-arduino();
-translate([arduinoWidth + 5, 0, 0])
-	arduino("Due");
-translate([-(arduinoWidth + 5), 0, 0])
-	arduino("Leonardo");
+// Arduino connectors library
 
 //Constructs a roughed out arduino board
 //Current only USB and power on the board but will add headers later
@@ -21,18 +17,45 @@ module arduino(boardType = "Uno") {
 	power();
 
 	//Headers
+	headers( boardType = boardType );
 }
 
-module boundingBox(boardType = "Uno") {
-
+module boundingBox(boardType = "Uno", offset = 0, height = 0) {
+	if( height != 0 ) {
+		if( boardType == "Uno" || boardType == "NG" || boardType == "Diecimila" || boardType == "Duemilanove" ) {
+			translate([-offset, -(6.5 + offset), 0])
+				cube([arduinoWidth + offset * 2, unoDepth + offset * 2, height]);
+		} else if ( boardType == "Leonardo" ) {
+			translate([-offset, -(1.1 + offset), 0])
+				cube([arduinoWidth + offset * 2, unoDepth + offset * 2, height]);
+		} else if ( boardType == "Mega 2560" || boardType == "Due" || boardType == "Mega" ) {
+			translate([-offset, -(6.5 + offset), 0])
+				cube([arduinoWidth + offset * 2, dueDepth + offset * 2, height]);
+		} else {
+			echo("Board type not found!");
+		}
+	} else {
+		if( boardType == "Uno" || boardType == "NG" || boardType == "Diecimila" || boardType == "Duemilanove" ) {
+			translate([-offset, -(6.5 + offset), -offset])
+				cube([arduinoWidth + offset * 2, unoDepth + offset * 2, arduinoHeight + offset * 2]);
+		} else if ( boardType == "Leonardo" ) {
+			translate([-offset, -(1.1 + offset), -offset])
+				cube([arduinoWidth + offset * 2, unoDepth + offset * 2, arduinoHeight + offset * 2]);
+		} else if ( boardType == "Mega 2560" || boardType == "Due" || boardType == "Mega" ) {
+			translate([-offset, -(6.5 + offset), -offset])
+				cube([arduinoWidth + offset * 2, dueDepth + offset, arduinoHeight + offset * 2]);
+		} else {
+			echo("Board type not found!");
+		}
+	}
 }
 
-//Creates standsoff for different boards
-module standoffs( boardType = "Uno", height = 10, topRadius = mountingHoleRadius + 1, bottomRadius =  mountingHoleRadius + 2, tapHole = mountingHoleRadius * 0.75 ) {
+//Creates standoffs for different boards
+module standoffs( boardType = "Uno", height = 10, topRadius = mountingHoleRadius + 1, bottomRadius =  mountingHoleRadius + 1, holeRadius = mountingHoleRadius ) {
 	holePlacement(boardType = boardType)
 		difference() {
 			cylinder(r1 = bottomRadius, r2 = topRadius, h = height, $fn=32);
-			cylinder(r =  tapHole, h = height * 4, center = true, $fn=32);
+			cylinder(r =  holeRadius, h = height * 4, center = true, $fn=32);
 		}
 }
 
@@ -56,8 +79,6 @@ module boardShape( boardType = "Uno", offset = 0, height = boardHeight ) {
 	}
 	
 }
-
-
 
 //This is used for placing the mounting holes 
 //child elements will be centered on that chosen boards mounting hole centers
@@ -93,7 +114,13 @@ module holePlacement(boardType = "Uno" ) {
 module usb( boardType = "Uno", extend = 0, offset = 0 ) {
 	if( boardType == "Leonardo" ) {
 		//Mini-B USB
-		translate([11.2 - offset, -(1.1 + extend ), boardHeight - offset])
+		translate([11.5 - offset, -(1.1 + extend ), boardHeight - offset])
+			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
+	} else if (boardType == "Due" ){
+		//Mini-B USB
+		translate([11.5 - offset, -(1.1 + extend ), boardHeight - offset])
+			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
+		translate([27.365 - offset, -(1.1 + extend ), boardHeight - offset])
 			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
 	} else {
 		//B USB
@@ -110,6 +137,50 @@ module power( boardType = "Uno", extend = 0, offset = 0 ) {
 
 module headers( boardType = "Uno", extend = 0, offset = 0 ) {
 
+	if( boardType == "Due" || boardType == "Mega" || boardType == "Mega 2560" ) {
+		//Top row
+		if (boardType == "Mega")
+			translate( [  2.54, 33.02, headerHeight / 2 + boardHeight])
+				cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		else 
+			translate( [  2.54, 30.226, headerHeight / 2 + boardHeight])
+				cube([2.54, 2.54 * 10, headerHeight ], center=true);
+		translate( [  2.54, 54.61, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		translate( [  2.54, 77.47, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+
+		//Bottom row
+		if (boardType == "Mega")
+			translate( [  50.8, 39.37, headerHeight / 2 + boardHeight])
+				cube([2.54, 2.54 * 6, headerHeight ], center=true);
+		else
+			translate( [  50.8, 36.83, headerHeight / 2 + boardHeight])
+				cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		translate( [  50.8, 59.69, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		translate( [  50.8, 82.55, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		//Vertical row
+		translate( [ 24.13, 95.25, headerHeight / 2 + boardHeight ])
+			cube([2.54 * 18, 2.54 * 2, headerHeight], center=true);
+
+	} else if( boardType == "Leonardo" || boardType == "Uno" || boardType == "NG" || boardType == "Diecimila" || boardType == "Duemilanove" ) {
+		//Top row
+		translate( [  2.54, 30.226, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 10, headerHeight ], center=true);
+		translate( [ 2.54, 54.61, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+
+		//Bottom row
+		translate( [  50.8, 36.83, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 8, headerHeight ], center=true);
+		translate( [ 50.8, 57.15, headerHeight / 2 + boardHeight])
+			cube([2.54, 2.54 * 6, headerHeight ], center=true);
+	} else {
+		echo("Board type not found");
+	}
+
 }
 
 
@@ -119,17 +190,17 @@ module headers( boardType = "Uno", extend = 0, offset = 0 ) {
 boardHeight = 1.7;
 
 arduinoWidth = 53.34;
-unoDepth = 68.58;
-dueDepth = 101.6;
-arduinoHeight = 11 + boardHeight;
+leonardoDepth = 68.58 + 1.1;
+unoDepth = 68.58 + 6.5;
+dueDepth = 101.6 + 6.5;
+arduinoHeight = 11 + boardHeight + 0;
+
 
 mountingHoleRadius = 3.2 / 2;
 
 headerWidth = 0;
 headerDepth = 0;
 headerHeight = 9;
-
-
 
 unoBoardPath = [ 
 		[  0.0, 0.0 ],

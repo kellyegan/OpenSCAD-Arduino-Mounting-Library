@@ -136,13 +136,13 @@ module usb( boardType = "Uno", extend = 0, offset = 0 ) {
 	if( boardType == "Leonardo" ) {
 		//Mini-B USB
 		translate([11.5 - offset, -(1.1 + extend ), boardHeight - offset])
-			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
+			cube([7.5 + offset * 2, 5.9 + extend, 3 + offset * 2]);
 	} else if (boardType == "Due" ){
 		//Mini-B USB
 		translate([11.5 - offset, -(1.1 + extend ), boardHeight - offset])
-			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
+			cube([7.5 + offset * 2, 5.9 + extend, 3 + offset * 2]);
 		translate([27.365 - offset, -(1.1 + extend ), boardHeight - offset])
-			cube([7.5 + offset, 5.9 + extend, 3 + offset]);
+			cube([7.5 + offset * 2, 5.9 + extend, 3 + offset * 2]);
 	} else {
 		//B USB
 		translate([9.34 - offset, -(6.5 + extend), boardHeight - offset]) 

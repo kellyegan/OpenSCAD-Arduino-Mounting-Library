@@ -7,6 +7,11 @@ boardType - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
 
 This module creates an Arduino board with USB connector, power supply and headers.
 
+###bumper(boardType)
+boardType - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
+
+Create a simple bumper style encloser for a particular board
+
 ###standoffs(boardType, height, bottomRadius, topRadius)
 boardType - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
 height - height of standoffs

@@ -20,7 +20,7 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-//arduino(MEGA);
+bumper();
 
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
@@ -35,6 +35,33 @@ module arduino(boardType = UNO) {
 	color("Black")components( boardType = boardType, component = HEADERS);
 	color("LightGray") components( boardType = boardType, component = USB );
 	color("Black") components( boardType = boardType,component = POWER );
+}
+
+
+module bumper( boardType = UNO ) {
+	difference() {
+		union() {
+			difference() {
+				boardShape(boardType = boardType, offset=1, height = pcbHeight + 3.5);
+				translate([0,0,-0.5])
+				boardShape(boardType = boardType, height = pcbHeight + 4.5);
+			}		
+			difference() {
+				boardShape(boardType = boardType, offset=1, height = pcbHeight + 1);
+				translate([0,0,-0.5])
+				boardShape(boardType = boardType, offset=-1.5, height = pcbHeight + 2);
+			}
+			holePlacement(boardType=boardType)
+				cylinder(r = mountingHoleRadius + 1.5, h = pcbHeight, $fn = 32);
+		}
+		translate([0,0,-0.5])
+		holePlacement(boardType=boardType)
+			cylinder(r = mountingHoleRadius, h = pcbHeight + 1, $fn = 32);	
+		translate([0,0,pcbHeight]) {
+			components(boardType = boardType, component=USB, offset = 1);
+			components(boardType = boardType, component=POWER, offset = 1);
+		}
+	}
 }
 
 //Offset from board. Negative values are insets

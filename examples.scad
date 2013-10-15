@@ -39,7 +39,7 @@ translate([0, 0, 0]) {
 
 	//The shape can also be offset. Negative values will create an inset.
 	translate( [-(boardWidth[UNO] + 30), 0, 0] )
-		boardShape(boardType=LEONARDO, offset=3);
+		boardShape(boardType=LEONARDO, offset=10);
 }
 
 

@@ -103,6 +103,8 @@ module components( boardType = UNO, component = HEADERS, extend = 0, offset = 0 
 	}
 }
 
+/******************************* BOARD SPECIFIC DATA ******************************/
+
 //Board IDs
 NG = 0;
 DIECIMILA = 1;

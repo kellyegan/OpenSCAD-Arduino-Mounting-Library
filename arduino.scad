@@ -353,24 +353,4 @@ POWER  = [
 			0               //Tre
 		];
 
-//similar to usb function but for the power jack
-module power( boardType = UNO, extend = 0, offset = 0, circleCut = false ) {
-	width = 9;
-	height = 10.9;
-	radius = 6.33 / 2;
-	distanceFromTop = 1.36;
-	if( !circleCut ) {
-		translate([41.14, 0, boardHeight]) { // difference() { 
-			translate([-offset, -(1.8 + extend), -offset]) 
-				cube([width + offset * 2, 13.2 + extend, height + offset * 2]);
-//			translate([ width / 2, 5, 10.9 - radius - distanceFromTop]) rotate( [90, 0, 0]) 
-//				cylinder( r = radius, h = 20, $fn = 32 );
-		}
-	} else {
-		translate([ 41.14 + width / 2, 0, boardHeight + height - radius - distanceFromTop]) 
-		rotate( [90, 0, 0]) 
-				cylinder( r = radius + offset, h = extend, $fn = 64 );
-	}
-}
-
 

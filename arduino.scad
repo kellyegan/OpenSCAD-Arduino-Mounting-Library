@@ -20,6 +20,7 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+//arduino("Mega");
 
 //Constructs a roughed out arduino board
 //Current only USB and power on the board but will add headers later
@@ -97,8 +98,7 @@ module boardShape( boardType = "Uno", offset = 0, height = boardHeight ) {
 				polygon(points = dueBoardPath);
 	} else {
 		echo("Board type not found!");
-	}
-	
+	}	
 }
 
 //This is used for placing the mounting holes 
@@ -151,9 +151,23 @@ module usb( boardType = "Uno", extend = 0, offset = 0 ) {
 }
 
 //similar to usb function but for the power jack
-module power( boardType = "Uno", extend = 0, offset = 0 ) {
-	translate([41.14 - offset,-(1.8 + extend), boardHeight - offset])
-		cube([9 + offset * 2, 13.2 + extend, 10.9 + offset * 2]);
+module power( boardType = "Uno", extend = 0, offset = 0, circleCut = false ) {
+	width = 9;
+	height = 10.9;
+	radius = 6.33 / 2;
+	distanceFromTop = 1.36;
+	if( !circleCut ) {
+		translate([41.14, 0, boardHeight]) { // difference() { 
+			translate([-offset, -(1.8 + extend), -offset]) 
+				cube([width + offset * 2, 13.2 + extend, height + offset * 2]);
+//			translate([ width / 2, 5, 10.9 - radius - distanceFromTop]) rotate( [90, 0, 0]) 
+//				cylinder( r = radius, h = 20, $fn = 32 );
+		}
+	} else {
+		translate([ 41.14 + width / 2, 0, boardHeight + height - radius - distanceFromTop]) 
+		rotate( [90, 0, 0]) 
+				cylinder( r = radius + offset, h = extend, $fn = 64 );
+	}
 }
 
 module headers( boardType = "Uno", extend = 0, offset = 0 ) {

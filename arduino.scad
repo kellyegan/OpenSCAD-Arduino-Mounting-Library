@@ -52,12 +52,12 @@ module bumper( boardType = UNO ) {
 				boardShape(boardType = boardType, offset=-1.5, height = pcbHeight + 2);
 			}
 			holePlacement(boardType=boardType)
-				cylinder(r = mountingHoleRadius + 1.5, h = pcbHeight, $fn = 32);
+				cylinder(r = mountingHoleRadius + 1.5, h = pcbHeight + 1, $fn = 32);
 		}
 		translate([0,0,-0.5])
 		holePlacement(boardType=boardType)
-			cylinder(r = mountingHoleRadius, h = pcbHeight + 1, $fn = 32);	
-		translate([0,0,pcbHeight]) {
+			cylinder(r = mountingHoleRadius, h = pcbHeight + 2, $fn = 32);	
+		translate([0,0,pcbHeight+1]) {
 			components(boardType = boardType, component=USB, offset = 1);
 			components(boardType = boardType, component=POWER, offset = 1);
 		}

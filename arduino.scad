@@ -20,7 +20,9 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-bumper();
+box();
+translate([0,0,10+2])
+	arduino();
 
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
@@ -36,7 +38,6 @@ module arduino(boardType = UNO) {
 	color("LightGray") components( boardType = boardType, component = USB );
 	color("Black") components( boardType = boardType,component = POWER );
 }
-
 
 module bumper( boardType = UNO ) {
 	difference() {
@@ -63,6 +64,7 @@ module bumper( boardType = UNO ) {
 		}
 	}
 }
+
 
 //Offset from board. Negative values are insets
 module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {

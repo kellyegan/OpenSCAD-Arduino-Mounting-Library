@@ -20,51 +20,111 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-box();
-translate([0,0,10+2])
-	arduino();
+//	arduino();
 
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
 	//The PCB with holes
 	difference() {
-		color("SteelBlue") boardShape( boardType );
+		color("SteelBlue") 
+			boardShape( boardType );
 		translate([0,0,-pcbHeight * 0.5]) holePlacement(boardType = boardType)
 			cylinder(r = mountingHoleRadius, h = pcbHeight * 2, $fn=32);
 	}
 
-	color("Black")components( boardType = boardType, component = HEADERS);
-	color("LightGray") components( boardType = boardType, component = USB );
-	color("Black") components( boardType = boardType,component = POWER );
+	color("Black")
+		components( boardType = boardType, component = HEADERS);
+	color("LightGray")
+		components( boardType = boardType, component = USB );
+	color("Black")
+		components( boardType = boardType,component = POWER );
 }
 
 module bumper( boardType = UNO ) {
 	difference() {
 		union() {
 			difference() {
-				boardShape(boardType = boardType, offset=1, height = pcbHeight + 3.5);
+				boardShape(boardType = boardType, offset=1.4, height = pcbHeight + 2);
 				translate([0,0,-0.5])
-				boardShape(boardType = boardType, height = pcbHeight + 4.5);
+				boardShape(boardType = boardType, height = pcbHeight + 5.5);
 			}		
 			difference() {
-				boardShape(boardType = boardType, offset=1, height = pcbHeight + 1);
+				boardShape(boardType = boardType, offset=1, height = 1.5);
 				translate([0,0,-0.5])
-				boardShape(boardType = boardType, offset=-1.5, height = pcbHeight + 2);
+				boardShape(boardType = boardType, offset=-2, height = pcbHeight + 2);
 			}
 			holePlacement(boardType=boardType)
-				cylinder(r = mountingHoleRadius + 1.5, h = pcbHeight + 1, $fn = 32);
+				cylinder(r = mountingHoleRadius + 1.5, h = 1.5, $fn = 32);
 		}
 		translate([0,0,-0.5])
 		holePlacement(boardType=boardType)
 			cylinder(r = mountingHoleRadius, h = pcbHeight + 2, $fn = 32);	
-		translate([0,0,pcbHeight+1]) {
+		translate([0,0,1.5]) {
 			components(boardType = boardType, component=USB, offset = 1);
 			components(boardType = boardType, component=POWER, offset = 1);
 		}
 	}
 }
 
+module box( boardType = UNO, wall = 4, offset = 1, standoffHeight = 5, topExtention = 10, cornerRadius = 0 ) {
+	exteriorHeight = boardHeight[boardType] + offset * 2 + standoffHeight + topExtention + wall * 2;
+	interiorHeight = exteriorHeight - wall;
+
+	//This should be generalized
+	additionalOffset = boardType == LEONARDO ? 1.1 : 6.5;
+
+	difference() {
+		translate([wall + offset, wall + offset + additionalOffset, 0]) difference() {
+			//Outside
+			boundingBox( boardType=boardType, offset = wall + offset, height = exteriorHeight, cornerRadius = cornerRadius);
+			//Inside
+			translate([0,0,wall])
+				boundingBox( boardType=boardType, offset = offset, height = interiorHeight + 0.5, cornerRadius = cornerRadius);
+			//Lid cut
+			translate([0,wall + 0.5, interiorHeight]) 
+				boundingBox( boardType=boardType, offset = offset, height = wall + 0.5 );
+			translate( [(boardWidth[boardType] + offset * 2) * 0.33333, boardDepth[boardType] - (wall + offset), interiorHeight]) 
+				rotate([0,90,0]) 
+					cylinder( r = wall * 0.35, h = (boardWidth[boardType] + offset * 2) * 0.33333, $fn = 16 );
+			//Component holes
+			translate([0, 0,wall + standoffHeight]) {
+				components(boardType=boardType, component=USB, offset = 1.5, extension = wall + offset + 5);
+				components(boardType=boardType, component=POWER, offset = 1.5, extension = wall + offset + 5);
+			}
+		}
+	
+		//Lid slides
+		translate([0, 2 * wall + 2 * offset + boardDepth[boardType], interiorHeight + wall ]) 
+		rotate([180, 0, 0]) {
+			lid( boardType = UNO, wall = wall, offset = offset );
+		}
+	}
+	
+	translate([wall + offset, wall + offset, wall]) {
+		standoffs(boardType=boardType, height=standoffHeight);
+	}
+}
+
+module lid( boardType = UNO, wall = 4, offset = 1 ) {
+	depth = wall + offset * 2 + boardDepth[boardType];
+	width = boardWidth[boardType] + 2 * offset;
+
+	union() {
+		translate([wall, 0, 0]) {
+			cube([width, depth, wall]);
+		}
+	
+		translate([wall/2, 0, wall / 2])  {
+			rotate([0,45,0])
+				cube([sides(wall),boardDepth[boardType] + 2 * offset + wall,sides(wall)]);
+			translate([boardWidth[boardType] + 2 * offset,0,0]) rotate([0,45,0])
+				cube([sides(wall),boardDepth[boardType] + 2 * offset + wall,sides(wall)]);
+		}
+		translate( [wall + width * 0.33333, wall * 0.6, wall]) rotate([0,90,0]) 
+			cylinder( r = wall * 0.35, h = (boardWidth[boardType] + offset * 2) * 0.33333, $fn = 16 );
+	}
+}
 
 //Offset from board. Negative values are insets
 module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {
@@ -78,14 +138,21 @@ module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {
 }
 
 //Create a bounding box around the board
-module boundingBox(boardType = UNO, offset = 0, height = 0) {
-	height = height == 0 ? boardHeight[boardType] : height;
+//Offset - will increase the size of the box on each side,
+//Height - overides the boardHeight and offset in the z direction
+module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0) {
+	height = height == 0 ? boardHeight[boardType] + offset * 2 : height;
 
 	//This should be generalized
 	additionalOffset = boardType == LEONARDO ? 1.1 : 6.5;
 
-	translate([-offset, -(additionalOffset + offset), -offset])
-		cube([boardWidth[boardType] + offset * 2, boardDepth[boardType] + offset * 2, height + offset * 2]);
+	translate([-offset, -(additionalOffset + offset), height == 0 ? -offset: 0]) {
+		if( cornerRadius == 0 ) {
+			cube([boardWidth[boardType] + offset * 2, boardDepth[boardType] + offset * 2, height]);
+		} else {
+			roundedCube([boardWidth[boardType] + offset * 2, boardDepth[boardType] + offset * 2, height], cornerRadius = cornerRadius);
+		}
+	}
 }
 
 //Creates standoffs for different boards
@@ -110,7 +177,7 @@ module holePlacement(boardType = UNO ) {
 //  compenent - the data set with a particular component (like boardHeaders)
 //  extend - the amount to extend the component in the direction of its socket
 //  offset - the amount to increase the components other two boundaries
-module components( boardType = UNO, component = HEADERS, extend = 0, offset = 0 ) {
+module components( boardType = UNO, component = HEADERS, extension = 0, offset = 0 ) {
 	translate([0, 0, pcbHeight]) {
 		for( i = [0:len(component[boardType]) - 1] ){
 			assign(
@@ -118,19 +185,33 @@ module components( boardType = UNO, component = HEADERS, extend = 0, offset = 0 
 				position = component[boardType][i][0] - (([1,1,1] - component[boardType][i][2]) * offset)
 					+ [	min(component[boardType][i][2][0],0), 
 					 	min(component[boardType][i][2][1],0),
-               min(component[boardType][i][2][2],0) ] * extend,
+               			min(component[boardType][i][2][2],0) ] * extension,
 				//Calculates the full box size including offset and extention
 				dimensions = component[boardType][i][1] 
 					+ ((component[boardType][i][2] * [1,1,1]) 
-						* component[boardType][i][2]) * extend
+						* component[boardType][i][2]) * extension
 					+ ([1,1,1] - component[boardType][i][2]) * offset * 2 
 				) {
+				
 				translate( position ) 
 					cube( dimensions );
 			}
 		}	
 	}
 }
+
+module roundedCube( dimensions = [10,10,10], cornerRadius = 1, f=32 ) {
+	translate([ cornerRadius, cornerRadius, 0]) hull() {
+		cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+		translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+		translate([0, dimensions[1] - cornerRadius * 2, 0]) {
+			cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+			translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+		}
+	}
+}
+
+function sides( diagonal ) = sqrt(diagonal * diagonal  / 2);
 
 /******************************* BOARD SPECIFIC DATA ******************************/
 
@@ -351,24 +432,25 @@ DueUSB = [
 	[[27.365, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0]]
 	];
 
-USB = [ 	ngUSB,         //NG
-				ngUSB,         //Diecimila
-				ngUSB,         //Duemilanove
-				ngUSB,         //Uno
-				LeonardoUSB,         //Leonardo
-				ngUSB,       //Mega
-				ngUSB,   //Mega 2560
-				DueUSB,   //Due
-				0,                 //Yun
-				0,                 //Intel Galileo
-				0                  //Tre
-			];
+USB = [ 	
+		ngUSB,         //NG
+		ngUSB,         //Diecimila
+		ngUSB,         //Duemilanove
+		ngUSB,         //Uno
+		LeonardoUSB,   //Leonardo
+		ngUSB,         //Mega
+		ngUSB,         //Mega 2560
+		DueUSB,        //Due
+		0,             //Yun
+		0,             //Intel Galileo
+		0              //Tre
+  	  ];
 
 ngPower = [
-	[[41.14, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0]]
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0]]
 	];
 
-POWER  = [ 	
+POWER = [ 	
 			ngPower, //NG
 			ngPower, //Diecimila
 			ngPower, //Duemilanove

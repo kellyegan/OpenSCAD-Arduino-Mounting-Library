@@ -7,6 +7,15 @@ The library has a variety of modules for creating Arduinos and Arduino mounts. H
 
 *This module creates an Arduino board with USB connector, power supply and headers.*
 
+###box(boardType)
+**boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
+
+*Creates a sliding box enclosure for a particular board*
+
+###lid(boardType)
+
+*Create a lid for the sliding box.
+
 ###bumper(boardType)
 **boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
 

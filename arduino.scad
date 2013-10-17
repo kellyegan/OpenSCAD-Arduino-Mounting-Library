@@ -20,7 +20,7 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-//	arduino();
+include <pins.scad>
 
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
@@ -156,13 +156,32 @@ module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0) {
 }
 
 //Creates standoffs for different boards
-module standoffs( boardType = UNO, height = 10, topRadius = mountingHoleRadius + 1, bottomRadius =  mountingHoleRadius + 1, holeRadius = mountingHoleRadius ) {
+module standoffs( 
+	boardType = UNO, 
+	height = 10, 
+	topRadius = mountingHoleRadius + 1, 
+	bottomRadius =  mountingHoleRadius + 1, 
+	holeRadius = mountingHoleRadius,
+	mountType = TAPHOLE
+	) {
+
 	holePlacement(boardType = boardType)
-		difference() {
-			cylinder(r1 = bottomRadius, r2 = topRadius, h = height, $fn=32);
-			cylinder(r =  holeRadius, h = height * 4, center = true, $fn=32);
-		}
+		union() {
+			difference() {
+				cylinder(r1 = bottomRadius, r2 = topRadius, h = height, $fn=32);
+				if( mountType == TAPHOLE ) {
+					cylinder(r =  holeRadius, h = height * 4, center = true, $fn=32);
+				}
+			}
+			if( mountType == PIN ) {
+				translate([0, 0, height - 1])
+				pintack( h=pcbHeight + 3, r = holeRadius, lh=3, lt=1, bh=1, br=topRadius );
+			}
+		}	
 }
+
+TAPHOLE = 0;
+PIN = 1;
 
 //This is used for placing the mounting holes and for making standoffs
 //child elements will be centered on that chosen boards mounting hole centers

@@ -1,2 +1,4 @@
 *.swp
 *.gcode
+pins.scad
+test.scad

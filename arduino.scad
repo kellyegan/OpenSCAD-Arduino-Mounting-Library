@@ -99,12 +99,20 @@ module box( boardType = UNO, wall = 4, offset = 1, standoffHeight = 5, topExtent
 		rotate([180, 0, 0]) {
 			lid( boardType = UNO, wall = wall, offset = offset );
 		}
+
+		//Wiring holes
+		cylinder(r = 10, h = wall + 2);
 	}
 	
 	translate([wall + offset, wall + offset, wall]) {
 		standoffs(boardType=boardType, height=standoffHeight);
 	}
 }
+
+//Setting for enclosure mounting holes (Not Arduino mounting)
+NOMOUNTINGHOLES = 0;
+INTERIORMOUNTINGHOLES = 1;
+EXTERIORMOUNTINGHOLES = 2;
 
 module lid( boardType = UNO, wall = 4, offset = 1 ) {
 	depth = wall + offset * 2 + boardDepth[boardType];
@@ -121,7 +129,7 @@ module lid( boardType = UNO, wall = 4, offset = 1 ) {
 			translate([boardWidth[boardType] + 2 * offset,0,0]) rotate([0,45,0])
 				cube([sides(wall),boardDepth[boardType] + 2 * offset + wall,sides(wall)]);
 		}
-		translate( [wall + width * 0.33333, wall * 0.6, wall]) rotate([0,90,0]) 
+		translate( [wall + width * 0.33333, wall * 0.6, wall * .85]) rotate([0,90,0]) 
 			cylinder( r = wall * 0.35, h = (boardWidth[boardType] + offset * 2) * 0.33333, $fn = 16 );
 	}
 }

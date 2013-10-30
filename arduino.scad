@@ -227,13 +227,13 @@ module components( boardType = UNO, component = HEADERS, extension = 0, offset =
 	}
 }
 
-module roundedCube( dimensions = [10,10,10], cornerRadius = 1, f=32 ) {
+module roundedCube( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
 	translate([ cornerRadius, cornerRadius, 0]) hull() {
-		cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
-		translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+		cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
+		translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
 		translate([0, dimensions[1] - cornerRadius * 2, 0]) {
-			cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
-			translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = f, h = dimensions[2] );
+			cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
+			translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
 		}
 	}
 }
@@ -356,6 +356,20 @@ boardShape = [
 				];	
 
 /*********************************** DIMENSIONS ***********************************/
+
+boardDimensions = [
+					[ngWidth, ngDepth, 11 + pcbHieght],  		//NG
+					[ngWidth, ngDepth, 11 + pcbHieght],  		//Diecimila
+					[ngWidth, ngDepth, 11 + pcbHieght], 			//Duemilanove
+					[ngWidth, ngDepth, 11 + pcbHieght],    		//Uno
+					[ngWidth, leonardoDepth, 11 + pcbHieght],	//Leonardo
+					[ngWidth, megaDepth, 11 + pcbHieght],		//Mega
+					[ngWidth, megaDepth, 11 + pcbHieght],		//Mega 2560
+					[ngWidth, megaDepth, 11 + pcbHieght],		//Due
+					[0,0,0],              //Yun
+					[0,0,0],              //Intel Galileo
+					[0,0,0]               //Tre
+				];
 
 boardWidth = [ 	
 					ngWidth,        //NG

@@ -41,26 +41,59 @@ module arduino(boardType = UNO) {
 		components( boardType = boardType,component = POWER );
 }
 
-module bumper( boardType = UNO ) {
+//Creates a bumper style enclosure that fits tightly around the edge of the PCB.
+module bumper( boardType = UNO, mountingHoles = false ) {
+	bumperHeight = pcbHeight + 2;
+	bumperBaseHeight = 1.5;
+
 	difference() {
 		union() {
+			//Outer rim of bumper
 			difference() {
-				boardShape(boardType = boardType, offset=1.4, height = pcbHeight + 2);
+				boardShape(boardType = boardType, offset=1.4, height = bumperHeight);
 				translate([0,0,-0.5])
-				boardShape(boardType = boardType, height = pcbHeight + 5.5);
-			}		
-			difference() {
-				boardShape(boardType = boardType, offset=1, height = 1.5);
-				translate([0,0,-0.5])
-				boardShape(boardType = boardType, offset=-2, height = pcbHeight + 2);
+					boardShape(boardType = boardType, height = pcbHeight + 5.5);
 			}
+
+			//Base of bumper	
+			difference() {
+				boardShape(boardType = boardType, offset=1, height = bumperBaseHeight);
+				translate([0,0,-0.5])
+					boardShape(boardType = boardType, offset=-2, height = bumperHeight);
+			}
+
+			//Board mounting holes
 			holePlacement(boardType=boardType)
-				cylinder(r = mountingHoleRadius + 1.5, h = 1.5, $fn = 32);
+				cylinder(r = mountingHoleRadius + 1.5, h = bumperBaseHeight, $fn = 32);
+
+			//Bumper mounting holes (exterior)
+			if( mountingHoles ) {
+				difference() {	
+					hull() {
+						translate([-6, (boardDepth[boardType] - 6) / 2, 0])
+							cylinder( r = 6, h = pcbHeight + 2, $fn = 32 );
+						translate([ -0.5, boardDepth[boardType] / 2 - 9, 0]) 
+							cube([0.5, 12, bumperHeight]);
+					}
+					translate([-6, (boardDepth[boardType] - 6) / 2, 0])
+						mountingHole(holeDepth = bumperHeight);
+				}
+				difference() {	
+					hull() {
+						translate([boardWidth[boardType] + 6, (boardDepth[boardType] - 6) / 2,0])
+							cylinder( r = 6, h = pcbHeight + 2, $fn = 32 );
+						translate([ boardWidth[boardType], boardDepth[boardType] / 2 - 9, 0]) 
+							cube([0.5, 12, bumperHeight]);
+					}
+					translate([boardWidth[boardType] + 6, (boardDepth[boardType] - 6) / 2,0])
+						mountingHole(holeDepth = bumperHeight);
+				}
+			}
 		}
 		translate([0,0,-0.5])
 		holePlacement(boardType=boardType)
 			cylinder(r = mountingHoleRadius, h = pcbHeight + 2, $fn = 32);	
-		translate([0,0,1.5]) {
+		translate([0, 0, bumperBaseHeight]) {
 			components(boardType = boardType, component=USB, offset = 1);
 			components(boardType = boardType, component=POWER, offset = 1);
 		}
@@ -228,7 +261,11 @@ module components( boardType = UNO, component = HEADERS, extension = 0, offset =
 }
 
 module roundedCube( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
-	translate([ cornerRadius, cornerRadius, 0]) hull() {
+	hull() cornerCylinders( dimensions = dimensions, cornerRadius = cornerRadius, faces=faces ); 
+}
+
+module cornerCylinders( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
+	translate([ cornerRadius, cornerRadius, 0]) {
 		cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
 		translate([dimensions[0] - cornerRadius * 2, 0, 0]) cylinder( r = cornerRadius, $fn = faces, h = dimensions[2] );
 		translate([0, dimensions[1] - cornerRadius * 2, 0]) {
@@ -238,10 +275,20 @@ module roundedCube( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
 	}
 }
 
+module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewThreadRad, screwHeadHeight = woodscrewHeadHeight, holeDepth = 10) {
+	union() {
+		translate([0, 0, -0.01])
+			cylinder( r = screwThreadRad, h = 1.02, $fn = 32 );
+		translate([0, 0, 1])
+			cylinder( r1 = screwThreadRad, r2 = screwHeadRad, h = screwHeadHeight, $fn = 32 );
+		translate([0, 0, screwHeadHeight - 0.01 + 1])
+			cylinder( r = screwHeadRad, h = holeDepth - screwHeadHeight + 0.02, $fn = 32 );
+	}
+}
+
 function sides( diagonal ) = sqrt(diagonal * diagonal  / 2);
 
 /******************************* BOARD SPECIFIC DATA ******************************/
-
 //Board IDs
 NG = 0;
 DIECIMILA = 1;
@@ -262,7 +309,7 @@ headerHeight = 9;
 mountingHoleRadius = 3.2 / 2;
 
 ngWidth = 53.34;
-leonardoDepth = 68.58 + 1.1;
+leonardoDepth = 68.58 + 1.1;           //PCB depth plus offset of USB jack (1.1)
 ngDepth = 68.58 + 6.5;
 megaDepth = 101.6 + 6.5;               //Coding is my business and business is good!
 arduinoHeight = 11 + pcbHeight + 0;
@@ -358,14 +405,14 @@ boardShape = [
 /*********************************** DIMENSIONS ***********************************/
 
 boardDimensions = [
-					[ngWidth, ngDepth, 11 + pcbHieght],  		//NG
-					[ngWidth, ngDepth, 11 + pcbHieght],  		//Diecimila
-					[ngWidth, ngDepth, 11 + pcbHieght], 			//Duemilanove
-					[ngWidth, ngDepth, 11 + pcbHieght],    		//Uno
-					[ngWidth, leonardoDepth, 11 + pcbHieght],	//Leonardo
-					[ngWidth, megaDepth, 11 + pcbHieght],		//Mega
-					[ngWidth, megaDepth, 11 + pcbHieght],		//Mega 2560
-					[ngWidth, megaDepth, 11 + pcbHieght],		//Due
+					[ngWidth, ngDepth, 11 + pcbHeight],  		//NG
+					[ngWidth, ngDepth, 11 + pcbHeight],  		//Diecimila
+					[ngWidth, ngDepth, 11 + pcbHeight], 			//Duemilanove
+					[ngWidth, ngDepth, 11 + pcbHeight],    		//Uno
+					[ngWidth, leonardoDepth, 11 + pcbHeight],	//Leonardo
+					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega
+					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega 2560
+					[ngWidth, megaDepth, 11 + pcbHeight],		//Due
 					[0,0,0],              //Yun
 					[0,0,0],              //Intel Galileo
 					[0,0,0]               //Tre
@@ -417,7 +464,7 @@ boardHeight = [
 /*********************************** COMPONENTS ***********************************/
 
 //Array of vectors, each component has translation, dimensions
-//and out vector( which axis is away from board ) to help with extending punch holes
+//and out vector (which axis would a cable attach ) to help with extending punch holes
 ngHeaders = [
 	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1]],
 	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1]],
@@ -505,4 +552,9 @@ POWER = [
 			0               //Tre
 		];
 
+/****************************** NON-BOARD PARAMETERS ******************************/
 
+//Mounting holes
+woodscrewHeadRad = 4.6228;	//Number 8 wood screw head radius
+woodscrewThreadRad = 2.1336;  	//Number 8 wood screw thread radius
+woodscrewHeadHeight = 2.8448;	//Number 8 wood screw head height

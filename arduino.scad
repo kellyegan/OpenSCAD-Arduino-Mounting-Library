@@ -275,6 +275,28 @@ module cornerCylinders( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
 	}
 }
 
+module clip(clipWidth = 3, clipDepth = 4.5, clipHeight = 10, lipDepth = 1.5, lipHeight = 3) {
+	rotate([90, 0, 90])
+	linear_extrude(height = clipWidth, convexity = 10)
+		polygon(	points=[	[0, 0], 
+						[clipDepth - lipDepth, 0],
+						[clipDepth - lipDepth, clipHeight - lipHeight],
+						[clipDepth - 0.25, clipHeight - lipHeight],
+						[clipDepth, clipHeight - lipHeight + 0.25],
+						[clipDepth - lipDepth * 0.8, clipHeight],
+						[(clipDepth - lipDepth) * 0.3, clipHeight] 
+						], 
+				paths=[[0,1,2,3,4,5,6,7]]
+			);
+}
+
+module clipHole(clipWidth = 3, clipDepth = 4.5, clipHeight = 10, lipDepth = 1.5, lipHeight = 3) {
+	offset = 0.1;
+
+	translate([-offset, clipDepth - lipDepth-offset, clipHeight - lipHeight - offset])
+		cube( clipWidth + offset * 2, lipDepth + offset * 2, lipHeight + offset * 2 );
+}
+
 module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewThreadRad, screwHeadHeight = woodscrewHeadHeight, holeDepth = 10) {
 	union() {
 		translate([0, 0, -0.01])

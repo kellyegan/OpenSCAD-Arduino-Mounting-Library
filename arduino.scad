@@ -42,24 +42,23 @@ module arduino(boardType = UNO) {
 }
 
 //Creates a bumper style enclosure that fits tightly around the edge of the PCB.
-module bumper( boardType = UNO, mountingHoles = false ) {
-	bumperHeight = pcbHeight + 2;
-	bumperBaseHeight = 1.5;
+module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
+	bumperHeight = bumperBaseHeight + pcbHeight + 0.5;
 
 	difference() {
 		union() {
 			//Outer rim of bumper
 			difference() {
 				boardShape(boardType = boardType, offset=1.4, height = bumperHeight);
-				translate([0,0,-0.5])
-					boardShape(boardType = boardType, height = pcbHeight + 5.5);
+				translate([0,0,-0.1])
+					boardShape(boardType = boardType, height = bumperHeight + 0.2);
 			}
 
 			//Base of bumper	
 			difference() {
 				boardShape(boardType = boardType, offset=1, height = bumperBaseHeight);
-				translate([0,0,-0.5])
-					boardShape(boardType = boardType, offset=-2, height = bumperHeight);
+				translate([0,0, -0.1])
+					boardShape(boardType = boardType, offset=-2, height = bumperHeight + 0.2);
 			}
 
 			//Board mounting holes
@@ -92,7 +91,7 @@ module bumper( boardType = UNO, mountingHoles = false ) {
 		}
 		translate([0,0,-0.5])
 		holePlacement(boardType=boardType)
-			cylinder(r = mountingHoleRadius, h = pcbHeight + 2, $fn = 32);	
+			cylinder(r = mountingHoleRadius, h = bumperHeight, $fn = 32);	
 		translate([0, 0, bumperBaseHeight]) {
 			components(boardType = boardType, component=USB, offset = 1);
 			components(boardType = boardType, component=POWER, offset = 1);

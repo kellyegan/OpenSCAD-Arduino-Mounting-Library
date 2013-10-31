@@ -185,6 +185,7 @@ module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0) {
 
 	//This should be generalized
 	additionalOffset = boardType == LEONARDO ? 1.1 : 6.5;
+	additionalOffset = boardType == DUE ? 1.1 : 6.5;
 
 	translate([-offset, -(additionalOffset + offset), height == 0 ? -offset: 0]) {
 		if( cornerRadius == 0 ) {
@@ -311,6 +312,8 @@ ngWidth = 53.34;
 leonardoDepth = 68.58 + 1.1;           //PCB depth plus offset of USB jack (1.1)
 ngDepth = 68.58 + 6.5;
 megaDepth = 101.6 + 6.5;               //Coding is my business and business is good!
+dueDepth = 101.6 + 1.1;
+
 arduinoHeight = 11 + pcbHeight + 0;
 
 /********************************* MOUNTING HOLES *********************************/
@@ -411,7 +414,7 @@ boardDimensions = [
 					[ngWidth, leonardoDepth, 11 + pcbHeight],	//Leonardo
 					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega
 					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega 2560
-					[ngWidth, megaDepth, 11 + pcbHeight],		//Due
+					[ngWidth, dueDepth, 11 + pcbHeight],		//Due
 					[0,0,0],              //Yun
 					[0,0,0],              //Intel Galileo
 					[0,0,0]               //Tre
@@ -439,7 +442,7 @@ boardDepth = [
 					leonardoDepth,  //Leonardo
 					megaDepth,      //Mega
 					megaDepth,      //Mega 2560
-					megaDepth,      //Due
+					dueDepth,      //Due
 					0,              //Yun
 					0,              //Intel Galileo
 					0               //Tre

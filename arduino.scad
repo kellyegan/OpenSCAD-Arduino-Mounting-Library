@@ -174,7 +174,7 @@ module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {
 	translate([-offset, -offset, 0])
 		scale([xScale, yScale, 1.0])
 			linear_extrude(height = height) 
-				polygon(points = boardShape[boardType]);
+				polygon(points = boardShapes[boardType]);
 }
 
 //Create a bounding box around the board
@@ -396,8 +396,8 @@ boardHoles = [
        	0               //Tre
 		];
 
-/********************************* BOARD OUTLINES *********************************/
-ngBoardPath = [ 
+/********************************** BOARD SHAPES **********************************/
+ngBoardShape = [ 
 		[  0.0, 0.0 ],
 		[  53.34, 0.0 ],
 		[  53.34, 66.04 ],
@@ -409,7 +409,7 @@ ngBoardPath = [
 		[  0.0, 64.77 ]
 		];
 
-megaBoardPath = [ 
+megaBoardShape = [ 
 		[  0.0, 0.0 ],
 		[  53.34, 0.0 ],
 		[  53.34, 99.06 ],
@@ -421,15 +421,15 @@ megaBoardPath = [
 		[  0.0, 96.52 ]
 		];
 
-boardShape = [ 	
-					ngBoardPath,   //NG
-					ngBoardPath,   //Diecimila
-					ngBoardPath,   //Duemilanove
-					ngBoardPath,   //Uno
-					ngBoardPath,   //Leonardo
-					megaBoardPath, //Mega
-					megaBoardPath, //Mega 2560
-					megaBoardPath, //Due
+boardShapes = [ 	
+					ngBoardShape,   //NG
+					ngBoardShape,   //Diecimila
+					ngBoardShape,   //Duemilanove
+					ngBoardShape,   //Uno
+					ngBoardShape,   //Leonardo
+					megaBoardShape, //Mega
+					megaBoardShape, //Mega 2560
+					megaBoardShape, //Due
 					0,             //Yun
 					0,             //Intel Galileo
 					0              //Tre

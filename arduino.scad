@@ -275,8 +275,8 @@ module cornerCylinders( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
 	}
 }
 
-module clip(clipWidth = 3, clipDepth = 4.5, clipHeight = 10, lipDepth = 1.5, lipHeight = 3) {
-	rotate([90, 0, 90])
+module clip(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHeight = 3) {
+	translate([-clipWidth/2,-(clipDepth-lipDepth),0]) rotate([90, 0, 90])
 	linear_extrude(height = clipWidth, convexity = 10)
 		polygon(	points=[	[0, 0], 
 						[clipDepth - lipDepth, 0],
@@ -290,11 +290,11 @@ module clip(clipWidth = 3, clipDepth = 4.5, clipHeight = 10, lipDepth = 1.5, lip
 			);
 }
 
-module clipHole(clipWidth = 3, clipDepth = 4.5, clipHeight = 10, lipDepth = 1.5, lipHeight = 3) {
+module clipHole(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHeight = 3, holeDepth = 5) {
 	offset = 0.1;
-
+	translate([-clipWidth/2,-(clipDepth-lipDepth),0])
 	translate([-offset, clipDepth - lipDepth-offset, clipHeight - lipHeight - offset])
-		cube( clipWidth + offset * 2, lipDepth + offset * 2, lipHeight + offset * 2 );
+		cube( [clipWidth + offset * 2, holeDepth, lipHeight + offset * 2] );
 }
 
 module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewThreadRad, screwHeadHeight = woodscrewHeadHeight, holeDepth = 10) {
@@ -308,7 +308,16 @@ module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewT
 	}
 }
 
+//Return the length side of a square given its diagonal
 function sides( diagonal ) = sqrt(diagonal * diagonal  / 2);
+
+//Determine the minumum value of on given axis in a list of points
+function minExtent( shape, axis, point = 0, minimum = 10000000) = 
+	point >= len(shape) ? minimum : minExtent( shape, axis, point + 1, min( minimum, shape[point][axis] ));
+
+//Determine the maximum value of on given axis in a list of points
+function maxExtent( pointList, axis, point = 0, maximum = -10000000 ) = 
+	point >= len(pointList) ? maximum : maxExtent( pointList, axis, point + 1, max( maximum, pointList[point][axis] ));
 
 /******************************* BOARD SPECIFIC DATA ******************************/
 //Board IDs
@@ -487,8 +496,7 @@ boardHeight = [
 
 /*********************************** COMPONENTS ***********************************/
 
-//Array of vectors, each component has translation, dimensions
-//and out vector (which axis would a cable attach ) to help with extending punch holes
+//Component data, each row has component position, dimensions and direction (which way would a cable attach)
 ngHeaders = [
 	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1]],
 	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1]],

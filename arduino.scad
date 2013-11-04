@@ -22,6 +22,7 @@
 
 include <pins.scad>
 arduino();
+%boundingBox();
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -32,13 +33,8 @@ module arduino(boardType = UNO) {
 		translate([0,0,-pcbHeight * 0.5]) holePlacement(boardType = boardType)
 			cylinder(r = mountingHoleRadius, h = pcbHeight * 2, $fn=32);
 	}
-
-	color("Black")
-		components( boardType = boardType, component = HEADERS);
-	color("LightGray")
-		components( boardType = boardType, component = USB );
-	color("Black")
-		components( boardType = boardType,component = POWER );
+	//Add all components to board
+	components( boardType = boardType, component = ALL );
 }
 
 //Creates a bumper style enclosure that fits tightly around the edge of the PCB.
@@ -237,24 +233,25 @@ module holePlacement(boardType = UNO ) {
 //  compenent - the data set with a particular component (like boardHeaders)
 //  extend - the amount to extend the component in the direction of its socket
 //  offset - the amount to increase the components other two boundaries
-module components( boardType = UNO, component = HEADERS, extension = 0, offset = 0 ) {
+module components( boardType = UNO, component = ALL, extension = 0, offset = 0 ) {
 	translate([0, 0, pcbHeight]) {
-		for( i = [0:len(component[boardType]) - 1] ){
-			assign(
-          //Calculates position + adjustment for offset and extention
-				position = component[boardType][i][0] - (([1,1,1] - component[boardType][i][2]) * offset)
-					+ [	min(component[boardType][i][2][0],0), 
-					 	min(component[boardType][i][2][1],0),
-               			min(component[boardType][i][2][2],0) ] * extension,
-				//Calculates the full box size including offset and extention
-				dimensions = component[boardType][i][1] 
-					+ ((component[boardType][i][2] * [1,1,1]) 
-						* component[boardType][i][2]) * extension
-					+ ([1,1,1] - component[boardType][i][2]) * offset * 2 
-				) {
-				
-				translate( position ) 
-					cube( dimensions );
+		for( i = [0:len(components[boardType]) - 1] ){
+			if( components[3] == component || component == ALL) {
+				assign( 
+					//Calculates position + adjustment for offset and extention  
+					position = components[boardType][i][0] - (([1,1,1] - components[boardType][i][2]) * offset)
+						+ [	min(components[boardType][i][2][0],0), 
+						 	min(components[boardType][i][2][1],0),
+	               			min(components[boardType][i][2][2],0) ] * extension,
+					//Calculates the full box size including offset and extention
+					dimensions = components[boardType][i][1] 
+						+ ((components[boardType][i][2] * [1,1,1]) 
+							* components[boardType][i][2]) * extension
+						+ ([1,1,1] - components[boardType][i][2]) * offset * 2 
+					) {					
+					translate( position ) color( components[boardType][i][4] ) 
+						cube( dimensions );
+				}
 			}
 		}	
 	}
@@ -366,15 +363,6 @@ DUE = 7;
 YUN = 8; 
 INTELGALILEO = 9;
 TRE = 10;
-
-//Component IDs
-HEADER_FEMALE = 0;
-HEADER_MALE = 1;
-USB = 2;
-POWER = 3;
-ETHERNET = 4;
-HDMI = 5;
-RCA = 6;
 
 /********************************** MEASUREMENTS **********************************/
 pcbHeight = 1.7;
@@ -536,97 +524,85 @@ boardHeight = [
 		0               //Tre
 		];
 
-
 /*********************************** COMPONENTS ***********************************/
 
+//Component IDs
+ALL = -1;
+HEADER_F = 0;
+HEADER_M = 1;
+USB = 2;
+POWER = 3;
 
-
-ngHeaders = [
-	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
+//Component data. 
+//[position, dimensions, direction(which way would a cable attach), type(header, usb, etc.), color]
+ngComponents = [
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "LightGray" ],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
-megaHeaders = [
-	[[1.27, 22.86, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 31.75, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_FEMALE, ""]
+leonardoComponents = [
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[11.5, -1.1, 0],[7.5, 5.9, 3],[0, -1, 0], USB, "LightGray" ],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
-mega2560Headers = [
-	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
-	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_FEMALE, ""]
+megaComponents = [
+	[[1.27, 22.86, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 31.75, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "LightGray"],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
-HEADERS = [ 	ngHeaders,         //NG
-	ngHeaders,         //Diecimila
-	ngHeaders,         //Duemilanove
-	ngHeaders,         //Uno
-	ngHeaders,         //Leonardo
-	megaHeaders,       //Mega
-	mega2560Headers,   //Mega 2560
-	mega2560Headers,   //Due
-	0,                 //Yun
-	0,                 //Intel Galileo
-	0                  //Tre
+mega2560Components = [
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "LightGray" ],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
-//USB
-
-ngUSB = [ 
-	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "USB-B"]
+dueComponents = [
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_F, "Black"],
+	[[11.5, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, "LightGray" ],
+	[[27.365, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, "LightGray" ],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
-LeonardoUSB = [ 
-	[[11.5, -1.1, 0],[7.5, 5.9, 3],[0, -1, 0], USB, "USB-Micro-B"]
+components = [
+	ngComponents,		//NG
+	ngComponents,		//Diecimila
+	ngComponents,		//Duemilanove
+	ngComponents,		//Uno
+	leonardoComponents,	//Leonardo
+	megaComponents,		//Mega
+	mega2560Components,	//Mega 2560
+	dueComponents,   	//Due
+	0,                 	//Yun
+	0,					//Intel Galileo
+	0					//Tre
 	];
-
-DueUSB = [
-	[[11.5, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, ""],
-	[[27.365, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, ""]
-	];
-
-USB = [ 	
-		ngUSB,         //NG
-		ngUSB,         //Diecimila
-		ngUSB,         //Duemilanove
-		ngUSB,         //Uno
-		LeonardoUSB,   //Leonardo
-		ngUSB,         //Mega
-		ngUSB,         //Mega 2560
-		DueUSB,        //Due
-		0,             //Yun
-		0,             //Intel Galileo
-		0              //Tre
-  	  ];
-
-ngPower = [
-	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, ""]
-	];
-
-POWER = [ 	
-			ngPower, //NG
-			ngPower, //Diecimila
-			ngPower, //Duemilanove
-			ngPower, //Uno
-			ngPower, //Leonardo
-			ngPower, //Mega
-			ngPower, //Mega 2560
-			ngPower, //Due
-			0,              //Yun
-			0,              //Intel Galileo
-			0               //Tre
-		];
 
 /****************************** NON-BOARD PARAMETERS ******************************/
 

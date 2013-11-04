@@ -21,8 +21,7 @@
 //
 
 include <pins.scad>
-arduino();
-%boundingBox();
+
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -31,7 +30,7 @@ module arduino(boardType = UNO) {
 		color("SteelBlue") 
 			boardShape( boardType );
 		translate([0,0,-pcbHeight * 0.5]) holePlacement(boardType = boardType)
-			cylinder(r = mountingHoleRadius, h = pcbHeight * 2, $fn=32);
+			color("SteelBlue") cylinder(r = mountingHoleRadius, h = pcbHeight * 2, $fn=32);
 	}
 	//Add all components to board
 	components( boardType = boardType, component = ALL );
@@ -164,8 +163,10 @@ module lid( boardType = UNO, wall = 4, offset = 1 ) {
 
 //Offset from board. Negative values are insets
 module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {
-	xScale = (boardWidth[boardType] + offset * 2) / boardWidth[boardType];
-	yScale = (boardDepth[boardType] + offset * 2) / boardDepth[boardType];
+	dimensions = boardDimensions(boardType);
+
+	xScale = (dimensions[0] + offset * 2) / dimensions[0];
+	yScale = (dimensions[1] + offset * 2) / dimensions[1];
 
 	translate([-offset, -offset, 0])
 		scale([xScale, yScale, 1.0])
@@ -288,6 +289,7 @@ module cornerCylinders( dimensions = [10,10,10], cornerRadius = 1, faces=32 ) {
 	}
 }
 
+//Create a clip that snapps into a clipHole
 module clip(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHeight = 3) {
 	translate([-clipWidth/2,-(clipDepth-lipDepth),0]) rotate([90, 0, 90])
 	linear_extrude(height = clipWidth, convexity = 10)
@@ -303,6 +305,7 @@ module clip(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHei
 			);
 }
 
+//Hole for clip
 module clipHole(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHeight = 3, holeDepth = 5) {
 	offset = 0.1;
 	translate([-clipWidth/2,-(clipDepth-lipDepth),0])
@@ -350,15 +353,17 @@ function minPoint( list, index = 0, minimum = [10000000, 10000000, 10000000] ) =
 function maxPoint( list, index = 0, maximum = [-10000000, -10000000, -10000000] ) = 
 	index >= len(list) ? maximum : maxPoint( list, index + 1, maxVec( maximum, list[index] ));
 
+//Returns the pcb position and dimensions
 function pcbPosition(boardType) = minPoint(boardShapes[boardType]);
 function pcbDimensions(boardType) = maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight];
 
+//Returns the position of the box containing all components and its dimensions
 function componentsPosition(boardType) = minCompPoint(components[boardType]) + [0, 0, pcbHeight];
 function componentsDimensions(boardType) = maxCompPoint(components[boardType]) - minCompPoint(components[boardType]);
 
+//Returns the position and dimensions of the box containing the pcb board
 function boardPosition(boardType) = 
 	minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);
-
 function boardDimensions(boardType) = 
 	maxCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]) 
 	- minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);

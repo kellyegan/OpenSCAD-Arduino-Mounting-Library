@@ -21,7 +21,7 @@
 //
 
 include <pins.scad>
-
+arduino();
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -308,16 +308,50 @@ module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewT
 	}
 }
 
+
+/******************************** UTILITY FUNCTIONS *******************************/
+
 //Return the length side of a square given its diagonal
 function sides( diagonal ) = sqrt(diagonal * diagonal  / 2);
 
-//Determine the minumum value of on given axis in a list of points
-function minExtent( shape, axis, point = 0, minimum = 10000000) = 
-	point >= len(shape) ? minimum : minExtent( shape, axis, point + 1, min( minimum, shape[point][axis] ));
+//Return the minimum values between two vectors of either length 2 or 3. 2D Vectors are treated as 3D vectors who final value is 0.
+function minVec( vector1, vector2 ) =
+	[min(vector1[0], vector2[0]), min(vector1[1], vector2[1]), min((vector1[2] == undef ? 0 : vector1[2]), (vector2[2] == undef ? 0 : vector2[2]) )];
 
-//Determine the maximum value of on given axis in a list of points
-function maxExtent( pointList, axis, point = 0, maximum = -10000000 ) = 
-	point >= len(pointList) ? maximum : maxExtent( pointList, axis, point + 1, max( maximum, pointList[point][axis] ));
+//Return the maximum values between two vectors of either length 2 or 3. 2D Vectors are treated as 3D vectors who final value is 0.
+function maxVec( vector1, vector2 ) =
+	[max(vector1[0], vector2[0]), max(vector1[1], vector2[1]), max((vector1[2] == undef ? 0 : vector1[2]), (vector2[2] == undef ? 0 : vector2[2]) )];
+
+//Determine the minimum point on a component in a list of components
+function minCompPoint( list, index = 0, minimum = [10000000, 10000000, 10000000] ) = 
+	index >= len(list) ? minimum : minCompPoint( list, index + 1, minVec( minimum, list[index][0] ));
+
+//Determine the maximum point on a component in a list of components
+function maxCompPoint( list, index = 0, maximum = [-10000000, -10000000, -10000000] ) = 
+	index >= len(list) ? maximum : maxCompPoint( list, index + 1, maxVec( maximum, list[index][0] + list[index][1]));
+
+//Determine the minimum point in a list of points
+function minPoint( list, index = 0, minimum = [10000000, 10000000, 10000000] ) = 
+	index >= len(list) ? minimum : minPoint( list, index + 1, minVec( minimum, list[index] ));
+
+//Determine the maximum point in a list of points
+function maxPoint( list, index = 0, maximum = [-10000000, -10000000, -10000000] ) = 
+	index >= len(list) ? maximum : maxPoint( list, index + 1, maxVec( maximum, list[index] ));
+
+//Returns the bounds of a PCB as a position and dimensions
+function pcbBounds(boardType) = 
+	[ minPoint(boardShapes[boardType]), maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight] ];
+
+//Returns the bounds of the components of a board as a position and dimensions
+function componentsBounds(boardType) =
+	[ minCompPoint(components[boardType]), maxCompPoint(components[boardType]) - minCompPoint(components[boardType]) ];
+
+//Returns the bounds of a board as a position and dimensions
+function boardBounds(boardType) = 
+	[ 
+		minVec( pcbBounds( boardType = boardType ), componentsBounds( boardType = boardType ) ),
+		maxVec( pcbBounds( boardType = boardType ), componentsBounds( boardType = boardType ) ) 
+	];
 
 /******************************* BOARD SPECIFIC DATA ******************************/
 //Board IDs
@@ -332,6 +366,15 @@ DUE = 7;
 YUN = 8; 
 INTELGALILEO = 9;
 TRE = 10;
+
+//Component IDs
+HEADER_FEMALE = 0;
+HEADER_MALE = 1;
+USB = 2;
+POWER = 3;
+ETHERNET = 4;
+HDMI = 5;
+RCA = 6;
 
 /********************************** MEASUREMENTS **********************************/
 pcbHeight = 1.7;
@@ -422,134 +465,135 @@ megaBoardShape = [
 		];
 
 boardShapes = [ 	
-					ngBoardShape,   //NG
-					ngBoardShape,   //Diecimila
-					ngBoardShape,   //Duemilanove
-					ngBoardShape,   //Uno
-					ngBoardShape,   //Leonardo
-					megaBoardShape, //Mega
-					megaBoardShape, //Mega 2560
-					megaBoardShape, //Due
-					0,             //Yun
-					0,             //Intel Galileo
-					0              //Tre
-				];	
+		ngBoardShape,   //NG
+		ngBoardShape,   //Diecimila
+		ngBoardShape,   //Duemilanove
+		ngBoardShape,   //Uno
+		ngBoardShape,   //Leonardo
+		megaBoardShape, //Mega
+		megaBoardShape, //Mega 2560
+		megaBoardShape, //Due
+		0,             //Yun
+		0,             //Intel Galileo
+		0              //Tre
+		];	
 
 /*********************************** DIMENSIONS ***********************************/
 
 boardDimensions = [
-					[ngWidth, ngDepth, 11 + pcbHeight],  		//NG
-					[ngWidth, ngDepth, 11 + pcbHeight],  		//Diecimila
-					[ngWidth, ngDepth, 11 + pcbHeight], 			//Duemilanove
-					[ngWidth, ngDepth, 11 + pcbHeight],    		//Uno
-					[ngWidth, leonardoDepth, 11 + pcbHeight],	//Leonardo
-					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega
-					[ngWidth, megaDepth, 11 + pcbHeight],		//Mega 2560
-					[ngWidth, dueDepth, 11 + pcbHeight],		//Due
-					[0,0,0],              //Yun
-					[0,0,0],              //Intel Galileo
-					[0,0,0]               //Tre
-				];
+		[ngWidth, ngDepth, 11 + pcbHeight],  		//NG
+		[ngWidth, ngDepth, 11 + pcbHeight],  		//Diecimila
+		[ngWidth, ngDepth, 11 + pcbHeight], 			//Duemilanove
+		[ngWidth, ngDepth, 11 + pcbHeight],    		//Uno
+		[ngWidth, leonardoDepth, 11 + pcbHeight],	//Leonardo
+		[ngWidth, megaDepth, 11 + pcbHeight],		//Mega
+		[ngWidth, megaDepth, 11 + pcbHeight],		//Mega 2560
+		[ngWidth, dueDepth, 11 + pcbHeight],		//Due
+		[0,0,0],              //Yun
+		[0,0,0],              //Intel Galileo
+		[0,0,0]               //Tre
+		];
 
 boardWidth = [ 	
-					ngWidth,        //NG
-					ngWidth,        //Diecimila
-					ngWidth,        //Duemilanove
-					ngWidth,        //Uno
-					ngWidth,        //Leonardo
-					ngWidth,        //Mega
-					ngWidth,        //Mega 2560
-					ngWidth,        //Due
-					0,              //Yun
-					0,              //Intel Galileo
-					0               //Tre
-				];
+		ngWidth,        //NG
+		ngWidth,        //Diecimila
+		ngWidth,        //Duemilanove
+		ngWidth,        //Uno
+		ngWidth,        //Leonardo
+		ngWidth,        //Mega
+		ngWidth,        //Mega 2560
+		ngWidth,        //Due
+		0,              //Yun
+		0,              //Intel Galileo
+		0               //Tre
+		];
 
 boardDepth = [ 	
-					ngDepth,        //NG
-					ngDepth,        //Diecimila
-					ngDepth,        //Duemilanove
-					ngDepth,        //Uno
-					leonardoDepth,  //Leonardo
-					megaDepth,      //Mega
-					megaDepth,      //Mega 2560
-					dueDepth,      //Due
-					0,              //Yun
-					0,              //Intel Galileo
-					0               //Tre
-				];
+		ngDepth,        //NG
+		ngDepth,        //Diecimila
+		ngDepth,        //Duemilanove
+		ngDepth,        //Uno
+		leonardoDepth,  //Leonardo
+		megaDepth,      //Mega
+		megaDepth,      //Mega 2560
+		dueDepth,      //Due
+		0,              //Yun
+		0,              //Intel Galileo
+		0               //Tre
+		];
 
 boardHeight = [ 	
-					11 + pcbHeight, //NG
-					11 + pcbHeight, //Diecimila
-					11 + pcbHeight, //Duemilanove
-					11 + pcbHeight, //Uno
-					11 + pcbHeight, //Leonardo
-					11 + pcbHeight, //Mega
-					11 + pcbHeight, //Mega 2560
-					11 + pcbHeight, //Due
-					0,              //Yun
-					0,              //Intel Galileo
-					0               //Tre
-				];
+		11 + pcbHeight, //NG
+		11 + pcbHeight, //Diecimila
+		11 + pcbHeight, //Duemilanove
+		11 + pcbHeight, //Uno
+		11 + pcbHeight, //Leonardo
+		11 + pcbHeight, //Mega
+		11 + pcbHeight, //Mega 2560
+		11 + pcbHeight, //Due
+		0,              //Yun
+		0,              //Intel Galileo
+		0               //Tre
+		];
 
 
 /*********************************** COMPONENTS ***********************************/
 
-//Component data, each row has component position, dimensions and direction (which way would a cable attach)
+
+
 ngHeaders = [
-	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1]],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1]],
-	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1]],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1]],
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
 	];
 
 megaHeaders = [
-	[[1.27, 22.86, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[49.53, 31.75, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1]],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1]]
+	[[1.27, 22.86, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 31.75, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_FEMALE, ""]
 	];
 
 mega2560Headers = [
-	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1]],
-	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1]],
-	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1]],
-	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1]]
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 67.31, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[49.53, 72.39, 0], [headerWidth, headerWidth * 8, headerHeight], [0, 0, 1], HEADER_FEMALE, ""],
+	[[1.27, 92.71, 0], [headerWidth * 18, headerWidth * 2, headerHeight], [0, 0, 1], HEADER_FEMALE, ""]
 	];
 
 HEADERS = [ 	ngHeaders,         //NG
-				ngHeaders,         //Diecimila
-				ngHeaders,         //Duemilanove
-				ngHeaders,         //Uno
-				ngHeaders,         //Leonardo
-				megaHeaders,       //Mega
-				mega2560Headers,   //Mega 2560
-				mega2560Headers,   //Due
-				0,                 //Yun
-				0,                 //Intel Galileo
-				0                  //Tre
-			];
+	ngHeaders,         //Diecimila
+	ngHeaders,         //Duemilanove
+	ngHeaders,         //Uno
+	ngHeaders,         //Leonardo
+	megaHeaders,       //Mega
+	mega2560Headers,   //Mega 2560
+	mega2560Headers,   //Due
+	0,                 //Yun
+	0,                 //Intel Galileo
+	0                  //Tre
+	];
 
 //USB
 
 ngUSB = [ 
-	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0]]
+	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "USB-B"]
 	];
 
 LeonardoUSB = [ 
-	[[11.5, -1.1, 0],[7.5, 5.9, 3],[0, -1, 0]]
+	[[11.5, -1.1, 0],[7.5, 5.9, 3],[0, -1, 0], USB, "USB-Micro-B"]
 	];
 
 DueUSB = [
-	[[11.5, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0]],
-	[[27.365, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0]]
+	[[11.5, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, ""],
+	[[27.365, -1.1, 0], [7.5, 5.9, 3], [0, -1, 0], USB, ""]
 	];
 
 USB = [ 	
@@ -567,7 +611,7 @@ USB = [
   	  ];
 
 ngPower = [
-	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0]]
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, ""]
 	];
 
 POWER = [ 	

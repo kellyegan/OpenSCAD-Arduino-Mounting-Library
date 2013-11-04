@@ -165,14 +165,14 @@ module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ve
 				boundingBox(boardType = boardType, height = wall * 0.5, offset = offset - 0.5, cornerRadius = wall);
 		
 			//Lid clips
-			translate([0, enclosureDepth * 0.75 - (offset + wall), enclosureHeight]) {
+			translate([0, enclosureDepth * 0.75 - (offset + wall), 0]) {
 				translate([-offset, 0, 0])
 					rotate([0, 180, 90]) clip(clipHeight = 10);
 				translate([offset + boardDim[0], 0, 0])
 					rotate([0, 180, 270]) clip(clipHeight = 10);
 			}
 		
-			translate([0, enclosureDepth * 0.25 - (offset + wall), enclosureHeight]) {
+			translate([0, enclosureDepth * 0.25 - (offset + wall), 0]) {
 				translate([-offset, 0, 0])
 					rotate([0, 180, 90]) clip(clipHeight = 10);
 				translate([offset + dimensions[0], 0, 0])
@@ -180,8 +180,6 @@ module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ve
 			}
 
 		}
-		translate([0, 0, -10])
-			cylinder( r = 3, h = 50, $fn = 6);
 	}
 }
 

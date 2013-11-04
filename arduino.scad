@@ -21,7 +21,7 @@
 //
 
 include <pins.scad>
-bumper();
+
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -101,13 +101,88 @@ INTERIORMOUNTINGHOLES = 1;
 EXTERIORMOUNTINGHOLES = 2;
 
 //Create a board enclosure
-module enclosure( boardType = UNO, wall = 4, offset = 1, standoffHeight = 5, topExtention = 10, cornerRadius = 0 ) {
+module enclosure(boardType = UNO, wall = 3, offset = 3, topExtension = 10, cornerRadius = 3, mountType = TAPHOLE) {
+	standOffHeight = 5;
 
+	dimensions = boardDimensions(boardType);
+	boardDim = boardDimensions(boardType);
+	pcbDim = pcbDimensions(boardType);
+
+	enclosureWidth = pcbDim[0] + (wall + offset) * 2;
+	enclosureDepth = pcbDim[1] + (wall + offset) * 2;
+	enclosureHeight = boardDim[2] + wall + standOffHeight + topExtension;
+
+	union() {
+		difference() {
+			//Main box shape
+			boundingBox(boardType = boardType, height = enclosureHeight, offset = wall + offset, include=PCB, cornerRadius = wall);
+	
+			translate([ 0, 0, wall]) {
+				//Interior of box
+				boundingBox(boardType = boardType, height = enclosureHeight, offset = offset, include=PCB, cornerRadius = wall);
+	
+				//Punch outs for USB and POWER
+				translate([0, 0, standOffHeight]) {
+					components(boardType = boardType, offset = 1, extension = wall + offset + 10);
+				}
+			}
+			
+			//Holes for lid clips
+			translate([0, enclosureDepth * 0.75 - (offset + wall), enclosureHeight]) {
+				translate([-offset, 0, 0])
+					rotate([0, 180, 90]) clipHole(clipHeight = 10, holeDepth = wall + 0.2);
+				translate([offset + boardDim[0], 0, 0])
+					rotate([0, 180, 270]) clipHole(clipHeight = 10, holeDepth = wall + 0.2);
+			}
+		
+			translate([0, enclosureDepth * 0.25 - (offset + wall), enclosureHeight]) {
+				translate([-offset, 0, 0])
+					rotate([0, 180, 90]) clipHole(clipHeight = 10, holeDepth = wall + 0.2);
+				translate([offset + dimensions[0], 0, 0])
+					rotate([0, 180, 270]) clipHole(clipHeight = 10, holeDepth = wall + 0.2);
+			}	 
+		}
+		translate([0, 0, wall]) {
+			standoffs(boardType = boardType, height = standOffHeight, mountType = mountType);
+		}
+	}
 }
 
 //Create a snap on lid for enclosure
-module enclosureLid( boardType = UNO, wall = 4, offset = 1 ) {
+module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ventilationHoles = false) {
+	dimensions = boardDimensions(boardType);
+	boardDim = boardDimensions(boardType);
+	pcbDim = pcbDimensions(boardType);
 
+	enclosureWidth = pcbDim[0] + (wall + offset) * 2;
+	enclosureDepth = pcbDim[1] + (wall + offset) * 2;
+
+	difference() {
+		union() {
+			boundingBox(boardType = boardType, height = wall, offset = wall + offset, cornerRadius = wall);
+
+			translate([0, 0, -wall * 0.5])
+				boundingBox(boardType = boardType, height = wall * 0.5, offset = offset - 0.5, cornerRadius = wall);
+		
+			//Lid clips
+			translate([0, enclosureDepth * 0.75 - (offset + wall), enclosureHeight]) {
+				translate([-offset, 0, 0])
+					rotate([0, 180, 90]) clip(clipHeight = 10);
+				translate([offset + boardDim[0], 0, 0])
+					rotate([0, 180, 270]) clip(clipHeight = 10);
+			}
+		
+			translate([0, enclosureDepth * 0.25 - (offset + wall), enclosureHeight]) {
+				translate([-offset, 0, 0])
+					rotate([0, 180, 90]) clip(clipHeight = 10);
+				translate([offset + dimensions[0], 0, 0])
+					rotate([0, 180, 270]) clip(clipHeight = 10);
+			}
+
+		}
+		translate([0, 0, -10])
+			cylinder( r = 3, h = 50, $fn = 6);
+	}
 }
 
 //Offset from board. Negative values are insets
@@ -159,11 +234,14 @@ module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0, in
 }
 
 //Creates standoffs for different boards
+TAPHOLE = 0;
+PIN = 1;
+
 module standoffs( 
 	boardType = UNO, 
 	height = 10, 
 	topRadius = mountingHoleRadius + 1, 
-	bottomRadius =  mountingHoleRadius + 1, 
+	bottomRadius =  mountingHoleRadius + 2, 
 	holeRadius = mountingHoleRadius,
 	mountType = TAPHOLE
 	) {
@@ -183,8 +261,7 @@ module standoffs(
 		}	
 }
 
-TAPHOLE = 0;
-PIN = 1;
+
 
 //This is used for placing the mounting holes and for making standoffs
 //child elements will be centered on that chosen boards mounting hole centers
@@ -199,6 +276,14 @@ module holePlacement(boardType = UNO ) {
 //  compenent - the data set with a particular component (like boardHeaders)
 //  extend - the amount to extend the component in the direction of its socket
 //  offset - the amount to increase the components other two boundaries
+
+//Component IDs
+ALL = -1;
+HEADER_F = 0;
+HEADER_M = 1;
+USB = 2;
+POWER = 3;
+
 module components( boardType = UNO, component = ALL, extension = 0, offset = 0 ) {
 	translate([0, 0, pcbHeight]) {
 		for( i = [0:len(components[boardType]) - 1] ){
@@ -303,17 +388,17 @@ function maxPoint( list, index = 0, maximum = [-10000000, -10000000, -10000000] 
 	index >= len(list) ? maximum : maxPoint( list, index + 1, maxVec( maximum, list[index] ));
 
 //Returns the pcb position and dimensions
-function pcbPosition(boardType) = minPoint(boardShapes[boardType]);
-function pcbDimensions(boardType) = maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight];
+function pcbPosition(boardType = UNO) = minPoint(boardShapes[boardType]);
+function pcbDimensions(boardType = UNO) = maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight];
 
 //Returns the position of the box containing all components and its dimensions
-function componentsPosition(boardType) = minCompPoint(components[boardType]) + [0, 0, pcbHeight];
-function componentsDimensions(boardType) = maxCompPoint(components[boardType]) - minCompPoint(components[boardType]);
+function componentsPosition(boardType = UNO) = minCompPoint(components[boardType]) + [0, 0, pcbHeight];
+function componentsDimensions(boardType = UNO) = maxCompPoint(components[boardType]) - minCompPoint(components[boardType]);
 
 //Returns the position and dimensions of the box containing the pcb board
-function boardPosition(boardType) = 
+function boardPosition(boardType = UNO) = 
 	minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);
-function boardDimensions(boardType) = 
+function boardDimensions(boardType = UNO) = 
 	maxCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]) 
 	- minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);
 
@@ -434,13 +519,6 @@ boardShapes = [
 		];	
 
 /*********************************** COMPONENTS ***********************************/
-
-//Component IDs
-ALL = -1;
-HEADER_F = 0;
-HEADER_M = 1;
-USB = 2;
-POWER = 3;
 
 //Component data. 
 //[position, dimensions, direction(which way would a cable attach), type(header, usb, etc.), color]

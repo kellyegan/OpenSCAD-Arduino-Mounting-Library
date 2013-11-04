@@ -176,18 +176,34 @@ module boardShape( boardType = UNO, offset = 0, height = pcbHeight ) {
 //Create a bounding box around the board
 //Offset - will increase the size of the box on each side,
 //Height - overides the boardHeight and offset in the z direction
-module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0) {
-	height = height == 0 ? boardHeight[boardType] + offset * 2 : height;
 
-	//This should be generalized
-	additionalOffset = boardType == LEONARDO ? 1.1 : 6.5;
-	additionalOffset = boardType == DUE ? 1.1 : 6.5;
+BOARD = 0;        //Includes all components and PCB
+PCB = 1;          //Just the PCB
+COMPONENTS = 2;   //Just the components
 
-	translate([-offset, -(additionalOffset + offset), height == 0 ? -offset: 0]) {
+module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0, include = BOARD) {
+	//What parts are included? Entire board, pcb or just components.
+	pos = ([boardPosition(boardType), pcbPosition(boardType), componentsPosition(boardType)])[include];
+	dim = ([boardDimensions(boardType), pcbDimensions(boardType), componentsDimensions(boardType)])[include];
+
+	//Depending on if height is set position and dimensions will change
+	position = [
+				pos[0] - offset, 
+				pos[1] - offset, 
+				(height == 0 ? pos[2] - offset : pos[2] )
+				];
+
+	dimensions = [
+				dim[0] + offset * 2, 
+				dim[1] + offset * 2, 
+				(height == 0 ? dim[2] + offset * 2 : height)
+				];
+
+	translate( position ) {
 		if( cornerRadius == 0 ) {
-			cube([boardWidth[boardType] + offset * 2, boardDepth[boardType] + offset * 2, height]);
+			cube( dimensions );
 		} else {
-			roundedCube([boardWidth[boardType] + offset * 2, boardDepth[boardType] + offset * 2, height], cornerRadius = cornerRadius);
+			roundedCube( dimensions, cornerRadius=cornerRadius );
 		}
 	}
 }
@@ -305,7 +321,6 @@ module mountingHole(screwHeadRad = woodscrewHeadRad, screwThreadRad = woodscrewT
 	}
 }
 
-
 /******************************** UTILITY FUNCTIONS *******************************/
 
 //Return the length side of a square given its diagonal
@@ -335,20 +350,18 @@ function minPoint( list, index = 0, minimum = [10000000, 10000000, 10000000] ) =
 function maxPoint( list, index = 0, maximum = [-10000000, -10000000, -10000000] ) = 
 	index >= len(list) ? maximum : maxPoint( list, index + 1, maxVec( maximum, list[index] ));
 
-//Returns the bounds of a PCB as a position and dimensions
-function pcbBounds(boardType) = 
-	[ minPoint(boardShapes[boardType]), maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight] ];
+function pcbPosition(boardType) = minPoint(boardShapes[boardType]);
+function pcbDimensions(boardType) = maxPoint(boardShapes[boardType]) - minPoint(boardShapes[boardType]) + [0, 0, pcbHeight];
 
-//Returns the bounds of the components of a board as a position and dimensions
-function componentsBounds(boardType) =
-	[ minCompPoint(components[boardType]), maxCompPoint(components[boardType]) - minCompPoint(components[boardType]) ];
+function componentsPosition(boardType) = minCompPoint(components[boardType]) + [0, 0, pcbHeight];
+function componentsDimensions(boardType) = maxCompPoint(components[boardType]) - minCompPoint(components[boardType]);
 
-//Returns the bounds of a board as a position and dimensions
-function boardBounds(boardType) = 
-	[ 
-		minVec( pcbBounds( boardType = boardType ), componentsBounds( boardType = boardType ) ),
-		maxVec( pcbBounds( boardType = boardType ), componentsBounds( boardType = boardType ) ) 
-	];
+function boardPosition(boardType) = 
+	minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);
+
+function boardDimensions(boardType) = 
+	maxCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]) 
+	- minCompPoint([[pcbPosition(boardType), pcbDimensions(boardType)], [componentsPosition(boardType), componentsDimensions(boardType)]]);
 
 /******************************* BOARD SPECIFIC DATA ******************************/
 //Board IDs

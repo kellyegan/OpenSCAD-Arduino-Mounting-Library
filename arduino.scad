@@ -21,7 +21,7 @@
 //
 
 include <pins.scad>
-
+bumper();
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -39,6 +39,7 @@ module arduino(boardType = UNO) {
 //Creates a bumper style enclosure that fits tightly around the edge of the PCB.
 module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
 	bumperHeight = bumperBaseHeight + pcbHeight + 0.5;
+	dimensions = boardDimensions(boardType);
 
 	difference() {
 		union() {
@@ -64,22 +65,22 @@ module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
 			if( mountingHoles ) {
 				difference() {	
 					hull() {
-						translate([-6, (boardDepth[boardType] - 6) / 2, 0])
+						translate([-6, (dimensions[1] - 6) / 2, 0])
 							cylinder( r = 6, h = pcbHeight + 2, $fn = 32 );
-						translate([ -0.5, boardDepth[boardType] / 2 - 9, 0]) 
+						translate([ -0.5, dimensions[0] / 2 - 9, 0]) 
 							cube([0.5, 12, bumperHeight]);
 					}
-					translate([-6, (boardDepth[boardType] - 6) / 2, 0])
+					translate([-6, (dimensions[0] - 6) / 2, 0])
 						mountingHole(holeDepth = bumperHeight);
 				}
 				difference() {	
 					hull() {
-						translate([boardWidth[boardType] + 6, (boardDepth[boardType] - 6) / 2,0])
+						translate([dimensions[0] + 6, (dimensions[1] - 6) / 2,0])
 							cylinder( r = 6, h = pcbHeight + 2, $fn = 32 );
-						translate([ boardWidth[boardType], boardDepth[boardType] / 2 - 9, 0]) 
+						translate([ dimensions[0], dimensions[1] / 2 - 9, 0]) 
 							cube([0.5, 12, bumperHeight]);
 					}
-					translate([boardWidth[boardType] + 6, (boardDepth[boardType] - 6) / 2,0])
+					translate([dimensions[0] + 6, (dimensions[1] - 6) / 2,0])
 						mountingHole(holeDepth = bumperHeight);
 				}
 			}
@@ -94,71 +95,19 @@ module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
 	}
 }
 
-module box( boardType = UNO, wall = 4, offset = 1, standoffHeight = 5, topExtention = 10, cornerRadius = 0 ) {
-	exteriorHeight = boardHeight[boardType] + offset * 2 + standoffHeight + topExtention + wall * 2;
-	interiorHeight = exteriorHeight - wall;
-
-	//This should be generalized
-	additionalOffset = boardType == LEONARDO ? 1.1 : 6.5;
-
-	difference() {
-		translate([wall + offset, wall + offset + additionalOffset, 0]) difference() {
-			//Outside
-			boundingBox( boardType=boardType, offset = wall + offset, height = exteriorHeight, cornerRadius = cornerRadius);
-			//Inside
-			translate([0,0,wall])
-				boundingBox( boardType=boardType, offset = offset, height = interiorHeight + 0.5, cornerRadius = cornerRadius);
-			//Lid cut
-			translate([0,wall + 0.5, interiorHeight]) 
-				boundingBox( boardType=boardType, offset = offset, height = wall + 0.5 );
-			translate( [(boardWidth[boardType] + offset * 2) * 0.33333, boardDepth[boardType] - (wall + offset), interiorHeight]) 
-				rotate([0,90,0]) 
-					cylinder( r = wall * 0.35, h = (boardWidth[boardType] + offset * 2) * 0.33333, $fn = 16 );
-			//Component holes
-			translate([0, 0,wall + standoffHeight]) {
-				components(boardType=boardType, component=USB, offset = 1.5, extension = wall + offset + 5);
-				components(boardType=boardType, component=POWER, offset = 1.5, extension = wall + offset + 5);
-			}
-		}
-	
-		//Lid slides
-		translate([0, 2 * wall + 2 * offset + boardDepth[boardType], interiorHeight + wall ]) 
-		rotate([180, 0, 0]) {
-			lid( boardType = UNO, wall = wall, offset = offset );
-		}
-
-		//Wiring holes
-		cylinder(r = 10, h = wall + 2);
-	}
-	
-	translate([wall + offset, wall + offset, wall]) {
-		standoffs(boardType=boardType, height=standoffHeight);
-	}
-}
-
 //Setting for enclosure mounting holes (Not Arduino mounting)
 NOMOUNTINGHOLES = 0;
 INTERIORMOUNTINGHOLES = 1;
 EXTERIORMOUNTINGHOLES = 2;
 
-module lid( boardType = UNO, wall = 4, offset = 1 ) {
-	depth = wall + offset * 2 + boardDepth[boardType];
-	width = boardWidth[boardType] + 2 * offset;
+//Create a board enclosure
+module enclosure( boardType = UNO, wall = 4, offset = 1, standoffHeight = 5, topExtention = 10, cornerRadius = 0 ) {
 
-	union() {
-		translate([wall, 0, 0]) {
-			cube([width, depth, wall]);
-		}
-	
-		translate([wall/2, 0, wall / 2])  {
-			rotate([0,45,0])
-				cube([sides(wall),boardDepth[boardType] + 2 * offset + wall,sides(wall)]);
-			translate([boardWidth[boardType] + 2 * offset,0,0]) rotate([0,45,0])
-				cube([sides(wall),boardDepth[boardType] + 2 * offset + wall,sides(wall)]);
-		}
-		translate( [wall + width * 0.33333, wall * 0.6, wall * .85]) rotate([0,90,0]) 
-			cylinder( r = wall * 0.35, h = (boardWidth[boardType] + offset * 2) * 0.33333, $fn = 16 );
-	}
+}
+
+//Create a snap on lid for enclosure
+module enclosureLid( boardType = UNO, wall = 4, offset = 1 ) {
+
 }
 
 //Offset from board. Negative values are insets
@@ -483,64 +432,6 @@ boardShapes = [
 		0,             //Intel Galileo
 		0              //Tre
 		];	
-
-/*********************************** DIMENSIONS ***********************************/
-
-boardDimensions = [
-		[ngWidth, ngDepth, 11 + pcbHeight],  		//NG
-		[ngWidth, ngDepth, 11 + pcbHeight],  		//Diecimila
-		[ngWidth, ngDepth, 11 + pcbHeight], 			//Duemilanove
-		[ngWidth, ngDepth, 11 + pcbHeight],    		//Uno
-		[ngWidth, leonardoDepth, 11 + pcbHeight],	//Leonardo
-		[ngWidth, megaDepth, 11 + pcbHeight],		//Mega
-		[ngWidth, megaDepth, 11 + pcbHeight],		//Mega 2560
-		[ngWidth, dueDepth, 11 + pcbHeight],		//Due
-		[0,0,0],              //Yun
-		[0,0,0],              //Intel Galileo
-		[0,0,0]               //Tre
-		];
-
-boardWidth = [ 	
-		ngWidth,        //NG
-		ngWidth,        //Diecimila
-		ngWidth,        //Duemilanove
-		ngWidth,        //Uno
-		ngWidth,        //Leonardo
-		ngWidth,        //Mega
-		ngWidth,        //Mega 2560
-		ngWidth,        //Due
-		0,              //Yun
-		0,              //Intel Galileo
-		0               //Tre
-		];
-
-boardDepth = [ 	
-		ngDepth,        //NG
-		ngDepth,        //Diecimila
-		ngDepth,        //Duemilanove
-		ngDepth,        //Uno
-		leonardoDepth,  //Leonardo
-		megaDepth,      //Mega
-		megaDepth,      //Mega 2560
-		dueDepth,      //Due
-		0,              //Yun
-		0,              //Intel Galileo
-		0               //Tre
-		];
-
-boardHeight = [ 	
-		11 + pcbHeight, //NG
-		11 + pcbHeight, //Diecimila
-		11 + pcbHeight, //Duemilanove
-		11 + pcbHeight, //Uno
-		11 + pcbHeight, //Leonardo
-		11 + pcbHeight, //Mega
-		11 + pcbHeight, //Mega 2560
-		11 + pcbHeight, //Due
-		0,              //Yun
-		0,              //Intel Galileo
-		0               //Tre
-		];
 
 /*********************************** COMPONENTS ***********************************/
 

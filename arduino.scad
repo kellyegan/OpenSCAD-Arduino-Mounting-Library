@@ -90,8 +90,7 @@ module bumper( boardType = UNO, mountingHoles = false ) {
 		holePlacement(boardType=boardType)
 			cylinder(r = mountingHoleRadius, h = bumperHeight, $fn = 32);	
 		translate([0, 0, bumperBaseHeight]) {
-			components(boardType = boardType, component=USB, offset = 1);
-			components(boardType = boardType, component=POWER, offset = 1);
+			components(boardType = boardType, component = ALL, offset = 1);
 		}
 		translate([4,(dimensions[1] - dimensions[1] * 0.4)/2,-1])
 			cube([dimensions[0] -8,dimensions[1] * 0.4,bumperBaseHeight + 2]);
@@ -262,8 +261,6 @@ module standoffs(
 		}	
 }
 
-
-
 //This is used for placing the mounting holes and for making standoffs
 //child elements will be centered on that chosen boards mounting hole centers
 module holePlacement(boardType = UNO ) {
@@ -288,7 +285,7 @@ POWER = 3;
 module components( boardType = UNO, component = ALL, extension = 0, offset = 0 ) {
 	translate([0, 0, pcbHeight]) {
 		for( i = [0:len(components[boardType]) - 1] ){
-			if( components[3] == component || component == ALL) {
+			if( components[boardType][i][3] == component || component == ALL) {
 				assign( 
 					//Calculates position + adjustment for offset and extention  
 					position = components[boardType][i][0] - (([1,1,1] - components[boardType][i][2]) * offset)

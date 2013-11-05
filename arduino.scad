@@ -37,7 +37,8 @@ module arduino(boardType = UNO) {
 }
 
 //Creates a bumper style enclosure that fits tightly around the edge of the PCB.
-module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
+module bumper( boardType = UNO, mountingHoles = false ) {
+	bumperBaseHeight = 2;
 	bumperHeight = bumperBaseHeight + pcbHeight + 0.5;
 	dimensions = boardDimensions(boardType);
 
@@ -103,7 +104,7 @@ INTERIORMOUNTINGHOLES = 1;
 EXTERIORMOUNTINGHOLES = 2;
 
 //Create a board enclosure
-module enclosure(boardType = UNO, wall = 3, offset = 3, topExtension = 10, cornerRadius = 3, mountType = TAPHOLE) {
+module enclosure(boardType = UNO, wall = 3, offset = 3, heightExtension = 10, cornerRadius = 3, mountType = TAPHOLE) {
 	standOffHeight = 5;
 
 	dimensions = boardDimensions(boardType);
@@ -112,7 +113,7 @@ module enclosure(boardType = UNO, wall = 3, offset = 3, topExtension = 10, corne
 
 	enclosureWidth = pcbDim[0] + (wall + offset) * 2;
 	enclosureDepth = pcbDim[1] + (wall + offset) * 2;
-	enclosureHeight = boardDim[2] + wall + standOffHeight + topExtension;
+	enclosureHeight = boardDim[2] + wall + standOffHeight + heightExtension;
 
 	union() {
 		difference() {
@@ -151,7 +152,7 @@ module enclosure(boardType = UNO, wall = 3, offset = 3, topExtension = 10, corne
 }
 
 //Create a snap on lid for enclosure
-module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ventilationHoles = false) {
+module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ventHoles = false) {
 	dimensions = boardDimensions(boardType);
 	boardDim = boardDimensions(boardType);
 	pcbDim = pcbDimensions(boardType);

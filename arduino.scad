@@ -92,6 +92,8 @@ module bumper( boardType = UNO, mountingHoles = false, bumperBaseHeight = 2 ) {
 			components(boardType = boardType, component=USB, offset = 1);
 			components(boardType = boardType, component=POWER, offset = 1);
 		}
+		translate([4,(dimensions[1] - dimensions[1] * 0.4)/2,-1])
+			cube([dimensions[0] -8,dimensions[1] * 0.4,bumperBaseHeight + 2]);
 	}
 }
 

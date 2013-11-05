@@ -11,7 +11,7 @@ unoDimensions = boardDimensions( UNO );
 arduino();
 
 translate( [unoDimensions[0] + 50, 0, 0] )
-	arduino(MEGA);
+	arduino(DUE);
 
 translate( [-(unoDimensions[0] + 50), 0, 0] )
 	arduino(LEONARDO);
@@ -20,7 +20,7 @@ translate([0, 0, -75]) {
 	enclosure();
 
 	translate( [unoDimensions[0] + 50, 0, 0] )
-		bumper(MEGA);
+		bumper(DUE);
 
 	translate( [-(unoDimensions[0] + 50), 0, 0] ) union() {
 		standoffs(LEONARDO, mountType=PIN);

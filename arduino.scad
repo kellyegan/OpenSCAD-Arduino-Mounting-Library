@@ -281,6 +281,7 @@ HEADER_F = 0;
 HEADER_M = 1;
 USB = 2;
 POWER = 3;
+RJ45 = 4;
 
 module components( boardType = UNO, component = ALL, extension = 0, offset = 0 ) {
 	translate([0, 0, pcbHeight]) {
@@ -413,6 +414,7 @@ DUE = 7;
 YUN = 8; 
 INTELGALILEO = 9;
 TRE = 10;
+ETHERNET = 11;
 
 /********************************** MEASUREMENTS **********************************/
 pcbHeight = 1.7;
@@ -474,7 +476,8 @@ boardHoles = [
 		dueHoles,       //Due
 		0,              //Yun
 		0,              //Intel Galileo
-       	0               //Tre
+       	        0,              //Tre
+                unoHoles        //Ethernet
 		];
 
 /********************************** BOARD SHAPES **********************************/
@@ -511,9 +514,10 @@ boardShapes = [
 		megaBoardShape, //Mega
 		megaBoardShape, //Mega 2560
 		megaBoardShape, //Due
-		0,             //Yun
-		0,             //Intel Galileo
-		0              //Tre
+		0,              //Yun
+		0,              //Intel Galileo
+		0,              //Tre
+                ngBoardShape    //Ethernet
 		];	
 
 /*********************************** COMPONENTS ***********************************/
@@ -526,6 +530,15 @@ ngComponents = [
 	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
 	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
 	[[9.34, -6.5, 0],[12, 16, 11],[0, -1, 0], USB, "LightGray" ],
+	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
+	];
+
+etherComponents = [
+	[[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
+	[[1.27, 44.45, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 26.67, 0], [headerWidth, headerWidth * 8, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[49.53, 49.53, 0], [headerWidth, headerWidth * 6, headerHeight ], [0, 0, 1], HEADER_F, "Black" ],
+	[[7.20, -4.4, 0],[16, 22, 13],[0, -1, 0], RJ45, "Green" ],
 	[[40.7, -1.8, 0], [9.0, 13.2, 10.9], [0, -1, 0], POWER, "Black" ]
 	];
 
@@ -585,8 +598,9 @@ components = [
 	mega2560Components,	//Mega 2560
 	dueComponents,   	//Due
 	0,                 	//Yun
-	0,					//Intel Galileo
-	0					//Tre
+	0,		        //Intel Galileo
+	0,			//Tre
+        etherComponents         //Ethernet
 	];
 
 /****************************** NON-BOARD PARAMETERS ******************************/

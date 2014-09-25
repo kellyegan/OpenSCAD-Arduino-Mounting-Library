@@ -3,7 +3,7 @@
 The library has a variety of modules for creating Arduinos and Arduino mounts. Here is a basic description of the included modules. It includes all official boards through the Due. For examples see the included example SCAD.
 
 ###arduino(boardType)
-**boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560
+**boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560, ETHERNET
 
 *This module creates an Arduino board with USB connector, power supply and headers.*
 
@@ -87,7 +87,7 @@ The library has a variety of modules for creating Arduinos and Arduino mounts. H
 ###components(boardType, component, extension, offset)
 **boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560, ETHERNET
 
-**component** - ALL, HEADER\_F, HEADER\_M, USB, POWER
+**component** - ALL, HEADER\_F, HEADER\_M, USB, POWER, RJ45
 
 **extension** - Extention off the board in direction of connector. The default is the standard dimension of the connector, but can be set to an arbitrary value.
 

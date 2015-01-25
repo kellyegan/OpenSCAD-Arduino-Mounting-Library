@@ -21,7 +21,7 @@
 //
 
 include <pins.scad>
-
+arduino();
 //Constructs a roughed out arduino board
 //Current only USB, power and headers
 module arduino(boardType = UNO) {
@@ -287,21 +287,18 @@ module components( boardType = UNO, component = ALL, extension = 0, offset = 0 )
 	translate([0, 0, pcbHeight]) {
 		for( i = [0:len(components[boardType]) - 1] ){
 			if( components[boardType][i][3] == component || component == ALL) {
-				assign( 
 					//Calculates position + adjustment for offset and extention  
-					position = components[boardType][i][0] - (([1,1,1] - components[boardType][i][2]) * offset)
-						+ [	min(components[boardType][i][2][0],0), 
-						 	min(components[boardType][i][2][1],0),
-	               			min(components[boardType][i][2][2],0) ] * extension,
+					position = components[boardType][i][0] 
+            - (([1,1,1] - components[boardType][i][2]) * offset)
+						+ [	min(components[boardType][i][2][0],0), min(components[boardType][i][2][1],0), min(components[boardType][i][2][2],0) ] 
+            * extension;
 					//Calculates the full box size including offset and extention
 					dimensions = components[boardType][i][1] 
 						+ ((components[boardType][i][2] * [1,1,1]) 
 							* components[boardType][i][2]) * extension
-						+ ([1,1,1] - components[boardType][i][2]) * offset * 2 
-					) {					
+						+ ([1,1,1] - components[boardType][i][2]) * offset * 2;				
 					translate( position ) color( components[boardType][i][4] ) 
 						cube( dimensions );
-				}
 			}
 		}	
 	}
@@ -476,8 +473,8 @@ boardHoles = [
 		dueHoles,       //Due
 		0,              //Yun
 		0,              //Intel Galileo
-       	        0,              //Tre
-                unoHoles        //Ethernet
+		0,              //Tre
+       unoHoles        //Ethernet
 		];
 
 /********************************** BOARD SHAPES **********************************/

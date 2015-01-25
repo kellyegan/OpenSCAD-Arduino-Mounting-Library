@@ -266,7 +266,7 @@ module standoffs(
 module holePlacement(boardType = UNO ) {
 	for(i = boardHoles[boardType] ) {
 		translate(i)
-			child(0);
+			children(0);
 	}
 }
 

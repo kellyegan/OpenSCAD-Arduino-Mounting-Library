@@ -20,7 +20,7 @@
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-include <pins.scad>
+use <pins.scad>
 
 //Constructs a roughed out arduino board
 //Current only USB, power and headers

@@ -2,6 +2,8 @@
 
 The library has a variety of modules for creating Arduinos and Arduino mounts. Here is a basic description of the included modules. It includes all official boards through the Due. For examples see the included example SCAD.
 
+![openscadarduinomounting](https://cloud.githubusercontent.com/assets/492003/9833469/f1cbe2dc-5965-11e5-8357-0297916c8885.jpg)
+
 ###arduino(boardType)
 **boardType** - UNO, LEONARDO, DUEMILANOVE, DIECIMILA, DUE, MEGA, MEGA 2560, ETHERNET
 

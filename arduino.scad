@@ -68,10 +68,10 @@ module bumper( boardType = UNO, mountingHoles = false ) {
           hull() {
             translate([-6, (dimensions[1] - 6) / 2, 0])
               cylinder( r = 6, h = pcbHeight + 2, $fn = 32 );
-            translate([ -0.5, dimensions[0] / 2 - 9, 0]) 
+            translate([ -0.5, dimensions[1] / 2 - 9, 0])
               cube([0.5, 12, bumperHeight]);
           }
-          translate([-6, (dimensions[0] - 6) / 2, 0])
+          translate([-6, (dimensions[1] - 6) / 2, 0])
             mountingHole(holeDepth = bumperHeight);
         }
         difference() {  

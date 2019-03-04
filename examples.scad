@@ -31,3 +31,15 @@ translate([0, 0, -75]) {
 translate([0, 0, 75]) {
 	enclosureLid();
 }
+
+translate([-140,0,0]) {
+  translate([0,0,2.2]) arduino(NANO);
+  translate([0,100, 0]) bumper(NANO, mountingHoles = true);
+  translate([0,0,-75]) enclosure(NANO);
+  translate([0,0,75]) enclosureLid(NANO);
+
+  translate([0,100,-75]) {
+    standoffs(NANO, mountType=PIN);
+	boardShape(NANO, offset = 3);
+  }
+}

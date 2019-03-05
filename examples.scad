@@ -39,7 +39,7 @@ translate([-140,0,0]) {
   translate([0,0,75]) enclosureLid(NANO);
 
   translate([0,100,-75]) {
-    standoffs(NANO, mountType=PIN);
+    standoffs(NANO, mountType=NOTCH);
 	boardShape(NANO, offset = 3);
   }
 }

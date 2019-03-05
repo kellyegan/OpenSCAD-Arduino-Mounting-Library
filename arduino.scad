@@ -100,13 +100,13 @@ module bumper( boardType = UNO, mountingHoles = false ) {
     }
 
     // TODO : Boards are usually not flat on the downside, and pins
-    // currently colide with the structure (resulting in a ~1mm gap)
-    translate([0, 0, bumperBaseHeight]) {
-      components(boardType = boardType, component = HEADER_M, offset = 0);
-    }
-    translate([0, 0, bumperBaseHeight]) {
-      components(boardType = boardType, component = HEADER_F, offset = 0);
-    }
+    // currently colide with the structure (resulting in a gap)
+    //translate([0, 0, bumperBaseHeight]) {
+    //  components(boardType = boardType, component = HEADER_M, offset = 0);
+    //}
+    //translate([0, 0, bumperBaseHeight]) {
+    //  components(boardType = boardType, component = HEADER_F, offset = 0);
+    //}
     // Cooling opening?
     translate([4,(dimensions[1] - dimensions[1] * 0.4)/2,-1])
       cube([dimensions[0] -8,dimensions[1] * 0.4,bumperBaseHeight + 2]);
@@ -252,9 +252,10 @@ module boundingBox(boardType = UNO, offset = 0, height = 0, cornerRadius = 0, in
 //Creates standoffs for different boards
 TAPHOLE = 0;
 PIN = 1;
+NOTCH = 2;  // Recommended for small radius (< 1.5mm) on FDM printers.
 
-module standoffs( 
-  boardType = UNO, 
+module standoffs(
+  boardType = UNO,
   height = 10,
   mountType = TAPHOLE
   ) {
@@ -275,7 +276,14 @@ module standoffs(
         translate([0, 0, height - 1])
         pintack( h=pcbHeight + 3, r = holeRadius, lh=3, lt=1, bh=1, br=topRadius );
       }
-    }  
+      if( mountType == NOTCH ) {
+        $fn = 16;
+        translate([0, 0, height]) {
+          cylinder(r= holeRadius *0.9 , h=pcbHeight+0.1);
+          translate([0, 0, pcbHeight+0.1]) cylinder(r1 = holeRadius + 0.15, r2 = holeRadius * 0.7, h=0.8);
+        }
+      }
+    }
 }
 
 //This is used for placing the mounting holes and for making standoffs

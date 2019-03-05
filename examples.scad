@@ -43,3 +43,15 @@ translate([-140,0,0]) {
 	boardShape(NANO, offset = 3);
   }
 }
+
+translate([-200,0,0]) {
+  translate([0,0,2.2]) arduino(MKR_WIFI_1010);
+  translate([0,100, 0]) bumper(MKR_WIFI_1010, mountingHoles = true);
+  translate([0,0,-75]) enclosure(MKR_WIFI_1010, standOffHeight=10);
+  translate([0,0,75]) enclosureLid(MKR_WIFI_1010);
+
+  translate([0,100,-75]) {
+    standoffs(MKR_WIFI_1010, mountType=PIN);
+	boardShape(MKR_WIFI_1010, offset = 3);
+  }
+}

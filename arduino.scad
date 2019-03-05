@@ -93,20 +93,14 @@ module bumper( boardType = UNO, mountingHoles = false ) {
       components(boardType = boardType, component = USB, offset = 1);
     }
     translate([0, 0, bumperBaseHeight]) {
+      components(boardType = boardType, component = I2C, offset = 1);
+    }
+    translate([0, 0, bumperBaseHeight]) {
       components(boardType = boardType, component = POWER, offset = 1);
     }
     translate([0, 0, bumperBaseHeight]) {
       components(boardType = boardType, component = RJ45, offset = 1);
     }
-
-    // TODO : Boards are usually not flat on the downside, and pins
-    // currently colide with the structure (resulting in a gap)
-    //translate([0, 0, bumperBaseHeight]) {
-    //  components(boardType = boardType, component = HEADER_M, offset = 0);
-    //}
-    //translate([0, 0, bumperBaseHeight]) {
-    //  components(boardType = boardType, component = HEADER_F, offset = 0);
-    //}
     // Cooling opening?
     translate([4,(dimensions[1] - dimensions[1] * 0.4)/2,-1])
       cube([dimensions[0] -8,dimensions[1] * 0.4,bumperBaseHeight + 2]);
@@ -308,6 +302,7 @@ USB = 2;
 POWER = 3;
 RJ45 = 4;
 HEADER_BI = 5;
+I2C = 6;
 
 module header(dimensions, headerType ) {
   // zb : height of plastic part of the header: 2.54 for male
@@ -458,6 +453,7 @@ TRE = 10;
 ETHERNET = 11;
 NANO = 12;
 MKR_WIFI_1010 = 13;
+MKR_WIFI_1000 = 14;
 
 /********************************** MEASUREMENTS **********************************/
 pcbHeight = 1.7;
@@ -536,7 +532,8 @@ boardHoles = [
   0,              //Tre
   unoHoles,       //Ethernet
   nanoHoles,      //Nano
-  mkrHoles        //MKR WIFI 1010
+  mkrHoles,       //MKR WIFI 1010
+  mkrHoles        //MKR WIFI 1000
   ];
 
 mountingHoleRadius = [
@@ -553,7 +550,8 @@ mountingHoleRadius = [
   1.6,        //Tre
   1.6,        //Ethernet
   0.92,       //Nano
-  1.2         //MKR WIFI 1010
+  1.2,        //MKR WIFI 1010
+  1.2         //MKR WIFI 1000
   ];
 
 /********************************** BOARD SHAPES **********************************/
@@ -588,14 +586,14 @@ megaBoardShape = [
   [  0.0, 43.18]
   ];
 
- mkr_wifi_1010BoardShape = [
+ mkr_wifi_BoardShape = [
   [  0.0, 0.0 ],
   [  25.0, 0.0 ],
   [  25.0, 61.5 ],
   [  0.0, 61.5]
   ];
 
-boardShapes = [   
+boardShapes = [
   ngBoardShape,   //NG
   ngBoardShape,   //Diecimila
   ngBoardShape,   //Duemilanove
@@ -609,12 +607,13 @@ boardShapes = [
   0,              //Tre
   ngBoardShape,   //Ethernet
   nanoBoardShape, //Nano
-  mkr_wifi_1010BoardShape  //MKR WIFI 1010
-  ];  
+  mkr_wifi_BoardShape, //MKR WIFI 1010
+  mkr_wifi_BoardShape  //MKR WIFI 1000
+  ];
 
 /*********************************** COMPONENTS ***********************************/
 
-//Component data. 
+//Component data.
 //[position, dimensions, direction(which way would a cable attach), type(header, usb, etc.), color]
 ngComponents = [
   [[1.27, 17.526, 0], [headerWidth, headerWidth * 10, headerHeight], [0, 0, 1], HEADER_F, "Black" ],
@@ -686,13 +685,16 @@ nanoComponents = [
   [[4.9, -1.1, 0], [8, 9, 3], [0, -1, 0], USB, "LightGray" ],
   ];
 
-mkr_wifi_1010Components = [
+mkr_wifi_1000Components = [
   [[1, 20.5, 0], [headerWidth, headerWidth * 14, headerHeight], [0, 0, 1], HEADER_BI, "Black"],
   [[21.46, 20.5, 0], [headerWidth, headerWidth * 14, headerHeight], [0, 0, 1], HEADER_BI, "Black"],
   [[9.5, -1.1, 0], [8, 6, 3], [0, -1, 0], USB, "LightGray" ],
   [[19, 11.25, 0], [6.0, 8, 5.25], [1, 0, 0], POWER, "White" ]
   ];
 
+function cat(L1, L2) = [for(L=[L1, L2], a=L) a];
+
+mkr_wifi_1010Components = cat(mkr_wifi_1000Components, [[[0.6, 5.9, 0], [4.3, 8, 3], [-1, 0, 0], I2C, "White"]]);
 
 components = [
   ngComponents,         //NG
@@ -708,7 +710,8 @@ components = [
   0,                    //Tre
   etherComponents,      //Ethernet
   nanoComponents,       //Nano
-  mkr_wifi_1010Components //MKR WIFI 1010
+  mkr_wifi_1010Components, //MKR WIFI 1010
+  mkr_wifi_1000Components  //MKR WIFI 1000
   ];
 
 /****************************** NON-BOARD PARAMETERS ******************************/

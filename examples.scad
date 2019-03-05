@@ -51,7 +51,7 @@ translate([-200,0,0]) {
   translate([0,0,75]) enclosureLid(MKR_WIFI_1010);
 
   translate([0,100,-75]) {
-    standoffs(MKR_WIFI_1010, mountType=PIN);
+    standoffs(MKR_WIFI_1010, mountType=NOTCH);
 	boardShape(MKR_WIFI_1010, offset = 3);
   }
 }

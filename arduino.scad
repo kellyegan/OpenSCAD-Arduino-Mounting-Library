@@ -182,6 +182,16 @@ module enclosureLid( boardType = UNO, wall = 3, offset = 3, cornerRadius = 3, ve
       }
 
     }
+    if (ventHoles) {
+       translate([(wall+offset+0.5),(wall+offset+0.5),-5]) {
+       	  cube([5,boardDim[0]-5,10]);
+       }
+       translate([pcbDim[0]-(wall+offset+6),(wall+offset+0.5),-5]) {
+       	  cube([5,boardDim[0]-5,10]);
+       }
+       
+      
+   }
   }
 }
 
